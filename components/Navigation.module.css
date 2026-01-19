@@ -1,0 +1,324 @@
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.01);
+  box-shadow: 0 0.25rem 1.25rem 0 rgba(0, 0, 0, 0.30);
+  backdrop-filter: blur(0.375rem);
+}
+
+.container {
+  position: relative;
+  width: 100%;
+  height: 6.875rem;
+}
+
+
+/* 데스크톱 GNB 메뉴 */
+.desktopGnb {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 2.9375rem;
+  left: 50%;
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
+}
+
+
+.gnbLink {
+  font-weight: 600;
+  font-size: 1.125rem;
+  line-height: normal;
+  text-align: center;
+  color: white;
+  width: 4.375rem;
+  transition: color 0.2s;
+  text-decoration: none;
+}
+
+.gnbLinkBeforeLogo {
+  margin-right: 16.94rem;
+}
+
+.gnbLink:hover {
+  color: #fb923c;
+}
+
+.gnbLinkActive {
+  color: #f97316;
+}
+
+.logo {
+  position: absolute;
+  width: 11.0625rem;
+  height: 3.375rem;
+  left:50%; top:50%; transform: translate(-50%, -50%);
+}
+
+.logoImage {
+  object-fit: contain;
+}
+
+/* 모바일 로고 */
+.mobileLogo {
+  display: block;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@media (min-width: 768px) {
+  .mobileLogo {
+    display: none;
+  }
+}
+
+.mobileLogoLink {
+  position: relative;
+  width: 7.5rem;
+  height: 2.25rem;
+}
+
+/* 데스크톱 유틸메뉴 */
+.desktopUtil {
+  display: none;
+  position: absolute;
+  align-items: center;
+  gap: 1.375rem;
+  right: 9rem;
+  top:50%; transform: translateY(-50%);
+}
+
+@media (min-width: 48rem) {
+  .desktopUtil {
+    display: flex;
+  }
+}
+
+.languageSelector {
+  display: inline-grid;
+  grid-template-columns: max-content;
+  grid-template-rows: max-content;
+  align-items: start;
+  justify-items: start;
+  line-height: 0;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.languageSelector::after {
+  width:1px; height:0.875rem; background: rgba(255, 255, 255, 0.5);
+  position: absolute;
+  top: 50%;
+  left: 50%; transform: translateX(-50%) translateY(-50%);
+  content: '';
+  display: block;
+}
+
+.languageButton {
+  font-size: 1.125rem;
+  line-height: normal;
+  transition: color 0.2s;
+  background: none;
+  border: none;
+  color: #555;
+  cursor: pointer;
+  padding: 0;
+  font-family: var(--font-urbanist), var(--font-noto-sans-kr), sans-serif;
+  font-weight: 400;
+  position: relative;
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.languageButtonEN {
+  margin-left: 0;
+  margin-top: 0;
+}
+
+.languageButtonKO {
+  margin-left: 2.625rem;
+  margin-top: 0;
+}
+
+.languageButtonActive {
+  font-weight: 600;
+  color: white;
+}
+
+.languageDivider {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  height: 0.875rem;
+  align-items: center;
+  justify-content: center;
+  margin-left: 2rem;
+  margin-top: 0.3125rem;
+  width: 0;
+  position: relative;
+}
+
+.languageDivider::before {
+  content: '';
+  display: block;
+  width: 0.875rem;
+  height: 0;
+  border-left: 0.0625rem solid rgba(255, 255, 255, 0.5);
+  transform: rotate(90deg);
+}
+
+.contactButton {
+  background: #e8430c;
+  padding: 0.75rem 2.25rem;
+  border-radius: 2.28125rem;
+  font-weight: 700;
+  font-size: 1.25rem;
+  line-height: 1.5;
+  color: white;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.2s;
+}
+
+.contactButton:hover {
+  background: #d63a0a;
+}
+
+/* 모바일 햄버거 메뉴 */
+.mobileMenuButton {
+  display: flex;
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  align-items: center;
+  gap: 0.75rem;
+}
+
+@media (min-width: 48rem) {
+  .mobileMenuButton {
+    display: none;
+  }
+}
+
+.mobileLanguageSelector {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.mobileLanguageButton {
+  font-size: 0.875rem;
+  line-height: normal;
+  transition: color 0.2s;
+  background: none;
+  border: none;
+  color: #555;
+  cursor: pointer;
+  padding: 0;
+}
+
+.mobileLanguageButtonActive {
+  font-weight: 600;
+  color: white;
+}
+
+.mobileLanguageDivider {
+  color: white;
+  font-size: 0.875rem;
+}
+
+.hamburgerButton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.hamburgerLine {
+  display: block;
+  width: 1.5rem;
+  height: 0.125rem;
+  background: white;
+  transition: all 0.3s;
+}
+
+.hamburgerLineOpen1 {
+  transform: rotate(45deg) translateY(0.5rem);
+}
+
+.hamburgerLineOpen2 {
+  opacity: 0;
+}
+
+.hamburgerLineOpen3 {
+  transform: rotate(-45deg) translateY(-0.5rem);
+}
+
+/* 모바일 메뉴 오버레이 */
+.mobileMenu {
+  display: block;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(0.75rem);
+  border-top: 0.0625rem solid rgba(255, 255, 255, 0.1);
+}
+
+@media (min-width: 48rem) {
+  .mobileMenu {
+    display: none;
+  }
+}
+
+.mobileMenuContent {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 0;
+}
+
+.mobileMenuLink {
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: white;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.mobileMenuLink:hover {
+  color: #fb923c;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.mobileMenuLinkActive {
+  color: #f97316;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.mobileContactButton {
+  margin: 1rem 1.5rem 0;
+  background: #e8430c;
+  padding: 0.75rem 1.5rem;
+  border-radius: 2.28125rem;
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.mobileContactButton:hover {
+  background: #d63a0a;
+}

@@ -1,0 +1,64 @@
+.controls {
+  position: fixed;
+  top: 13.5rem;
+  right: 1rem;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(0.5rem);
+  border: 0.0625rem solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  min-width: 12rem;
+}
+
+.title {
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  font-family: var(--font-urbanist), var(--font-noto-sans-kr), sans-serif;
+}
+
+.controlGroup {
+  margin-bottom: 0.75rem;
+}
+
+.controlGroup:last-child {
+  margin-bottom: 0;
+}
+
+.label {
+  display: block;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.75rem;
+  margin-bottom: 0.25rem;
+  font-family: var(--font-urbanist), var(--font-noto-sans-kr), sans-serif;
+}
+
+.input {
+  width: 100%;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 0.0625rem solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.25rem;
+  color: white;
+  font-size: 0.875rem;
+  font-family: var(--font-urbanist), var(--font-noto-sans-kr), sans-serif;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #e8430c;
+}
+
+.input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.description {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.625rem;
+  margin-top: 0.25rem;
+  font-family: var(--font-urbanist), var(--font-noto-sans-kr), sans-serif;
+}

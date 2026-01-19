@@ -1,0 +1,67 @@
+.main {
+  min-height: 100vh;
+  background: black;
+  position: relative;
+}
+
+.backgroundImage {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+.backgroundImage img {
+  object-fit: cover;
+  opacity: 0.4;
+}
+
+.heroSection {
+  position: relative;
+  height: 300vh; /* 스크롤 모션을 위한 높이 추가 */
+  width: 100%;
+  z-index: 10;
+}
+
+.sectionContainer {
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+.pathSection {
+  position: relative;
+  min-height: 100vh;
+  padding: 3rem 1rem;
+  z-index: 10;
+  display: none; /* 일단 숨김 */
+}
+
+@media (min-width: 48rem) {
+  .pathSection {
+    padding: 5rem 1rem;
+  }
+}
+
+.pathTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: white;
+}
+
+@media (min-width: 48rem) {
+  .pathTitle {
+    font-size: 2.25rem;
+    margin-bottom: 2rem;
+  }
+}
+
+.pathContainer {
+  height: 12rem;
+}
+
+@media (min-width: 48rem) {
+  .pathContainer {
+    height: 16rem;
+  }
+}
