@@ -1,0 +1,101 @@
+.slotSection {
+  width: 100%;
+  min-height: 350vh;
+  
+  background: #0B0B0B;
+}
+
+.slotSectionInner {
+  padding: 0 12.57rem; /* 위아래 여백 없음, 좌우만 유지 */
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: sticky;
+  top: 0;
+  overflow: hidden;
+}
+
+.slotContainer {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  height: 67rem;
+  position: relative;
+  overflow: hidden;
+}
+
+
+.slotColumn {
+  display: flex;
+  flex-direction: row; /* 가로로 배치 */
+  gap: 0;
+  width: 100%;
+}
+
+.singleSlot {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+  position: relative;
+  /* 높이는 JavaScript에서 동적으로 설정 */
+}
+
+/* 1번 SVG 슬롯: 278 / (278 + 227) = 55.05% */
+.singleSlot:first-child {
+  width: 55.05%;
+  transform: translateX(1rem); /* 오른쪽으로 0.7rem 이동 */
+}
+
+/* 2번 SVG 슬롯: 227 / (278 + 227) = 44.95% */
+.singleSlot:last-child {
+  width: 44.95%;
+  transform: translateX(-1rem); /* 왼쪽으로 0.7rem 이동 */
+}
+
+.slotItem {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 283px; /* SVG 원본 높이 */
+  width: 100%;
+}
+
+.slotSVG {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.finalSVG {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 61.125rem;
+  height: auto;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.finalSVG svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+@media (max-width: 1024px) {
+  .slotSection {
+    padding: 5rem 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .slotSection {
+    padding: 3rem 1rem;
+  }
+}

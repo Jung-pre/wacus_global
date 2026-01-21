@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, forwardRef } from 'react';
+import gsap from 'gsap';
 import styles from './Navigation.module.css';
 
 const gnbItems = [
@@ -13,23 +14,85 @@ const gnbItems = [
   { href: '/portfolio', label: 'Portfolio' },
 ];
 
-export default function Navigation() {
+const Navigation = forwardRef<HTMLElement>((props, ref) => {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [language, setLanguage] = useState<'EN' | 'KO'>('EN');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
+  const lastScrollY = useRef(0);
+  const isScrollingDown = useRef(false);
+  const combinedRef = (ref || navRef) as React.RefObject<HTMLElement>;
 
   useEffect(() => {
+    let rafId: number | null = null;
+    let lastScrollTime = 0;
+    const throttleDelay = 16; // ~60fps
+
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      const currentTime = Date.now();
+      
+      if (currentTime - lastScrollTime < throttleDelay) {
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() => {
+          lastScrollTime = Date.now();
+          updateNavigation();
+        });
+        return;
+      }
+
+      lastScrollTime = currentTime;
+      updateNavigation();
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const updateNavigation = () => {
+      const currentScrollY = window.scrollY;
+      setIsScrolled(currentScrollY > 50);
+
+      const navElement = combinedRef.current;
+      
+      if (navElement) {
+        const navHeight = navElement.offsetHeight;
+        
+        // 이전 애니메이션 취소하여 덜덜거림 방지
+        gsap.killTweensOf(navElement);
+        
+        if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+          if (!isScrollingDown.current) {
+            isScrollingDown.current = true;
+            gsap.to(navElement, {
+              y: -navHeight,
+              duration: 0.4,
+              ease: 'power3.out',
+            });
+          }
+        } else if (currentScrollY < lastScrollY.current) {
+          if (isScrollingDown.current) {
+            isScrollingDown.current = false;
+            gsap.to(navElement, {
+              y: 0,
+              duration: 0.4,
+              ease: 'power3.out',
+            });
+          }
+        }
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+      if (combinedRef.current) {
+        gsap.killTweensOf(combinedRef.current);
+      }
+    };
   }, []);
 
   return (
-    <nav className={styles.nav}>
+    <nav ref={combinedRef} className={styles.nav}>
       <div className={styles.container}>
         {/* 데스크톱: GNB 메뉴 - 가운데 위치 */}
         <div className={styles.desktopGnb}>
@@ -89,7 +152,14 @@ export default function Navigation() {
 
           {/* CONTACT 버튼 */}
           <Link href="/contact" className={styles.contactButton}>
-            CONTACT
+            <span className={styles.contactButtonText}>CONTACT</span>
+            <Image
+              src="/main/icon_arrow-detail.svg"
+              alt=""
+              width={20}
+              height={20}
+              className={styles.contactButtonIcon}
+            />
           </Link>
         </div>
 
@@ -151,4 +221,8 @@ export default function Navigation() {
       </div>
     </nav>
   );
-}
+});
+
+Navigation.displayName = 'Navigation';
+
+export default Navigation;

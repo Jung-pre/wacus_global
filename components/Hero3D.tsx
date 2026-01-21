@@ -12,6 +12,8 @@ if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
 }
 
+const gsapVh = typeof window !== 'undefined' ? window.innerHeight / 100 : 0;
+
 // 3D 지구본 컴포넌트
 export const Globe = ({ 
   scrollTriggerRef,
@@ -41,53 +43,36 @@ export const Globe = ({
   useEffect(() => {
     if (!groupRef.current || !scrollTriggerRef.current) return;
 
+    const trigger = scrollTriggerRef.current;
+    const rect = trigger.getBoundingClientRect();
+    const progress = Math.max(0, Math.min(1, -rect.top / window.innerHeight));
+    const hasScrolledPast100vh = progress >= 1;
+
     const ctx = gsap.context(() => {
-      // hero 영역을 pin하여 sticky 효과 구현 (300vh까지)
-      const pinTrigger = ScrollTrigger.create({
-        trigger: scrollTriggerRef.current,
-        start: 'top top',
-        end: '+=300vh', // heroSection의 전체 높이(300vh) 동안 pin
-        pin: true,
-        pinSpacing: true,
-      });
+      const targetScale = 1.2;
+      const targetYPosition = -2;
 
-      // 처음 100vh 스크롤 구간에서 지구본이 아래로 이동하고 크기가 3/4로 줄어듦
-      const targetScale = 0.75; // 현재 크기의 3/4
-      const targetYPosition = -2; // 아래로 이동할 Y 위치
+      if (hasScrolledPast100vh) {
+        groupRef.current.position.y = targetYPosition;
+        groupRef.current.scale.set(targetScale, targetScale, targetScale);
+      }
 
-      // 처음 100vh 동안만 애니메이션 진행
       const scrollTriggerConfig = {
         trigger: scrollTriggerRef.current,
         start: 'top top',
-        end: '+=100vh', // 처음 100vh 동안만 애니메이션
+        end: () => `+=${50 * gsapVh}`,
         scrub: true,
-        invalidateOnRefresh: true, // 리사이즈 시 재계산
+        invalidateOnRefresh: true,
       };
 
-      // 스크롤에 따라 지구가 아래로 이동
       gsap.fromTo(groupRef.current.position, 
-        {
-          y: 0, // 초기 위치
-        },
-        {
-          y: targetYPosition,
-          scrollTrigger: scrollTriggerConfig,
-        }
+        { y: 0 },
+        { y: targetYPosition, scrollTrigger: scrollTriggerConfig }
       );
 
-      // 스크롤에 따라 지구 크기가 3/4로 줄어듦
       gsap.fromTo(groupRef.current.scale, 
-        {
-          x: 1.0,
-          y: 1.0,
-          z: 1.0,
-        },
-        {
-          x: targetScale,
-          y: targetScale,
-          z: targetScale,
-          scrollTrigger: scrollTriggerConfig,
-        }
+        { x: 1.0, y: 1.0, z: 1.0 },
+        { x: targetScale, y: targetScale, z: targetScale, scrollTrigger: scrollTriggerConfig }
       );
     }, groupRef);
 
@@ -102,6 +87,9 @@ export const Globe = ({
     groupRef.current.rotation.z = rotation[2];
   }, [rotation]);
 
+  const lastRotationRef = useRef<[number, number, number]>([0, 0, 0]);
+  const frameCountRef = useRef(0);
+
   useFrame((state, delta) => {
     if (!meshRef.current || !lightsMeshRef.current || !groupRef.current) return;
 
@@ -111,13 +99,27 @@ export const Globe = ({
       lightsMeshRef.current.rotation.y += delta * 0.05;
     }
     
-    // 지구의 실제 회전값 전달 (group rotation + mesh rotation)
+    // 지구의 실제 회전값 전달 (매 5프레임마다만 업데이트하여 성능 최적화)
     if (onRotationChange) {
-      onRotationChange([
-        groupRef.current.rotation.x,
-        groupRef.current.rotation.y + meshRef.current.rotation.y,
-        groupRef.current.rotation.z
-      ]);
+      frameCountRef.current++;
+      if (frameCountRef.current % 5 === 0) {
+        const newRotation: [number, number, number] = [
+          groupRef.current.rotation.x,
+          groupRef.current.rotation.y + meshRef.current.rotation.y,
+          groupRef.current.rotation.z
+        ];
+        
+        // 값이 실제로 변경되었을 때만 콜백 호출
+        const hasChanged = 
+          Math.abs(newRotation[0] - lastRotationRef.current[0]) > 0.01 ||
+          Math.abs(newRotation[1] - lastRotationRef.current[1]) > 0.01 ||
+          Math.abs(newRotation[2] - lastRotationRef.current[2]) > 0.01;
+        
+        if (hasChanged) {
+          lastRotationRef.current = newRotation;
+          onRotationChange(newRotation);
+        }
+      }
     }
   });
 
@@ -147,7 +149,7 @@ export const Globe = ({
     setCurrentGlobeScale(globeScale);
   }, [globeScale]);
 
-  // 지구본 초기 애니메이션: 1/3 크기에서 현재 크기로 부드럽게 확대
+  // 지구본 초기 애니메이션: 1/3 크기에서 현재 크기로 부드럽게 확대 (스크롤 0일 때만)
   const materialRef = useRef<any>(null);
   const lightsMaterialRef = useRef<any>(null);
   const initialScale = 1 / 3; // 초기 scale (현재 크기의 1/3)
@@ -155,35 +157,48 @@ export const Globe = ({
   useEffect(() => {
     if (!groupRef.current || !materialRef.current || !lightsMaterialRef.current) return;
 
-    // 초기 상태 설정: 1/3 크기, 투명
-    groupRef.current.scale.set(initialScale, initialScale, initialScale);
-    materialRef.current.opacity = 0;
-    materialRef.current.transparent = true;
-    lightsMaterialRef.current.opacity = 0;
-    lightsMaterialRef.current.transparent = true;
+    // 스크롤 위치 확인 - 스크롤이 0일 때만 인트로 애니메이션 실행
+    const scrollY = window.scrollY || window.pageYOffset;
+    const isAtTop = scrollY === 0;
 
-    // 지구본 애니메이션: scale과 opacity를 부드럽게 확대
-    gsap.to(groupRef.current.scale, {
-      x: 1.0,
-      y: 1.0,
-      z: 1.0,
-      duration: 1.5,
-      ease: 'power2.out',
-    });
+    if (isAtTop) {
+      // 초기 상태 설정: 1/3 크기, 투명
+      groupRef.current.scale.set(initialScale, initialScale, initialScale);
+      materialRef.current.opacity = 0;
+      materialRef.current.transparent = true;
+      lightsMaterialRef.current.opacity = 0;
+      lightsMaterialRef.current.transparent = true;
 
-    gsap.to({ opacity: 0 }, {
-      opacity: 1.0,
-      duration: 1.5,
-      ease: 'power2.out',
-      onUpdate: function() {
-        if (materialRef.current) {
-          materialRef.current.opacity = this.targets()[0].opacity;
-        }
-        if (lightsMaterialRef.current) {
-          lightsMaterialRef.current.opacity = this.targets()[0].opacity * 0.7;
-        }
-      },
-    });
+      // 지구본 애니메이션: scale과 opacity를 부드럽게 확대
+      gsap.to(groupRef.current.scale, {
+        x: 1.0,
+        y: 1.0,
+        z: 1.0,
+        duration: 1.5,
+        ease: 'power2.out',
+      });
+
+      gsap.to({ opacity: 0 }, {
+        opacity: 1.0,
+        duration: 1.5,
+        ease: 'power2.out',
+        onUpdate: function() {
+          if (materialRef.current) {
+            materialRef.current.opacity = this.targets()[0].opacity;
+          }
+          if (lightsMaterialRef.current) {
+            lightsMaterialRef.current.opacity = this.targets()[0].opacity * 0.7;
+          }
+        },
+      });
+    } else {
+      // 스크롤이 0이 아니면 바로 최종 상태로 설정
+      groupRef.current.scale.set(1.0, 1.0, 1.0);
+      materialRef.current.opacity = 1.0;
+      materialRef.current.transparent = true;
+      lightsMaterialRef.current.opacity = 0.7;
+      lightsMaterialRef.current.transparent = true;
+    }
   }, []);
 
   return (
@@ -261,6 +276,8 @@ export default function Hero3D({
   }, [scrollTriggerRef]);
   const [fov, setFov] = useState(50);
   const cameraRef = useRef<any>(null);
+  const directionalLightRef = useRef<any>(null);
+  const ambientLightRef = useRef<any>(null);
 
   useEffect(() => {
     const updateFov = () => {
@@ -278,6 +295,54 @@ export default function Hero3D({
     return () => window.removeEventListener('resize', updateFov);
   }, []);
 
+  useEffect(() => {
+    if (!scrollTriggerRef.current || !directionalLightRef.current || !ambientLightRef.current) return;
+
+    const trigger = scrollTriggerRef.current;
+    const rect = trigger.getBoundingClientRect();
+    const progress = Math.max(0, Math.min(1, -rect.top / window.innerHeight));
+    const hasScrolledPast100vh = progress >= 1;
+
+    if (hasScrolledPast100vh) {
+      directionalLightRef.current.intensity = lightIntensity * 0.05;
+      ambientLightRef.current.intensity = 0.1;
+    }
+
+    const ctx = gsap.context(() => {
+      const lightData = { 
+        directionalIntensity: lightIntensity, 
+        ambientIntensity: 0.1 
+      };
+
+      gsap.fromTo(lightData, 
+        {
+          directionalIntensity: lightIntensity,
+          ambientIntensity: 0.1,
+        },
+        {
+          directionalIntensity: lightIntensity * 0.05,
+          ambientIntensity: 0.1,
+          scrollTrigger: {
+            trigger: scrollTriggerRef.current,
+            start: 'top top',
+            end: () => `+=${100 * gsapVh}`,
+            scrub: true,
+            invalidateOnRefresh: true,
+            onUpdate: function() {
+              if (directionalLightRef.current) {
+                directionalLightRef.current.intensity = lightData.directionalIntensity;
+              }
+              if (ambientLightRef.current) {
+                ambientLightRef.current.intensity = lightData.ambientIntensity;
+              }
+            },
+          },
+        }
+      );
+    });
+
+    return () => ctx.revert();
+  }, [scrollTriggerRef, lightIntensity]);
 
   return (
     <>
@@ -288,16 +353,15 @@ export default function Hero3D({
         rotation={cameraRotation} 
         fov={fov} 
       />
-      {/* 태양 빛처럼 위에서 비추는 조명 - 하단이 어두워지도록 */}
-      <ambientLight intensity={0.1} />
+      <ambientLight ref={ambientLightRef} intensity={0.1} />
       <directionalLight 
+        ref={directionalLightRef}
         position={lightPosition} 
         intensity={lightIntensity} 
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
       />
-      {/* 지구의 하단이 어두워지도록 조명 각도 조정 */}
       
       <Globe 
         scrollTriggerRef={scrollTriggerRef} 
@@ -306,7 +370,6 @@ export default function Hero3D({
         onRotationChange={setGlobeActualRotation}
       />
       
-      {/* 포트폴리오 띠 - 지구 주위를 회전 (지구의 실제 회전값 사용) */}
       <PortfolioRing 
         globeScale={2.45} 
         globeRotation={globeActualRotation}

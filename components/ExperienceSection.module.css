@@ -1,0 +1,91 @@
+.experienceSection {
+  width: 100%;
+  height: 57.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.62rem;
+  background-image: url('/main/bg_experience.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+.experienceSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 0;
+}
+
+.experienceTitle,
+.viewMoreButton {
+  position: relative;
+  z-index: 1;
+}
+
+.experienceTitle {
+  color: #FFF;
+  font-family: Urbanist, sans-serif;
+  font-size: 6.875rem;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 100%; /* 6.875rem */
+  letter-spacing: -0.20625rem;
+  margin: 0;
+}
+
+.viewMoreButton {
+  border-radius: 6.25rem;
+  background: #8840F4;
+  color: #FFF;
+  font-family: Urbanist, sans-serif;
+  font-size: 1.25rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 150%; /* 1.875rem */
+  text-transform: uppercase;
+  border: none;
+  padding: 1rem 2.5rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.viewMoreButton:hover {
+  background: #6b30c7;
+}
+
+@media (max-width: 1024px) {
+  .experienceTitle {
+    font-size: 4rem;
+    letter-spacing: -0.12rem;
+  }
+  
+  .viewMoreButton {
+    font-size: 1rem;
+    padding: 0.875rem 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .experienceSection {
+    height: 40rem;
+    padding: 2rem 1rem;
+  }
+  
+  .experienceTitle {
+    font-size: 3rem;
+    letter-spacing: -0.09rem;
+  }
+  
+  .viewMoreButton {
+    font-size: 0.875rem;
+    padding: 0.75rem 1.5rem;
+  }
+}

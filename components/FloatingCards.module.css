@@ -2,17 +2,39 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
+  width: 100vw;
   height: 100vh;
   z-index: 15;
   pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transform-origin: center center;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.container .cardWrapper {
+  pointer-events: auto;
+}
+
+.container .cardItem {
+  pointer-events: auto;
 }
 
 .cardList {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  /* transform은 GSAP에서 관리 */
+}
+
+.cardItem {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   margin: 0;
@@ -20,16 +42,53 @@
   list-style: none;
 }
 
-.cardItem {
+.cardItem > div {
   position: absolute;
-  /* 위치와 회전은 인라인 스타일로 동적 계산 */
+  left: 50%;
+  top: 50%; /* 초기 상태: GSAP에서 3vh로 애니메이션 */
+  transform: translate(-50%, 0);
+  cursor: url('/main/btn_viewmore.png'), auto;
+}
+
+/* 카드 순서: 1번이 제일 위 (z-index 높음), 8번이 제일 아래 (z-index 낮음) */
+.cardItem:nth-child(1) {
+  z-index: 8; /* 1번 카드 - 제일 위 */
+}
+
+.cardItem:nth-child(2) {
+  z-index: 7;
+}
+
+.cardItem:nth-child(3) {
+  z-index: 6;
+}
+
+.cardItem:nth-child(4) {
+  z-index: 5;
+}
+
+.cardItem:nth-child(5) {
+  z-index: 4;
+}
+
+.cardItem:nth-child(6) {
+  z-index: 3;
+}
+
+.cardItem:nth-child(7) {
+  z-index: 2;
+}
+
+.cardItem:nth-child(8) {
+  z-index: 1; /* 8번 카드 - 제일 아래 */
 }
 
 .cardWrapper {
   position: relative;
   width: 18.75rem; /* 300px */
   height: 18.75rem; /* 300px - 1:1 비율 */
-  transform-origin: center center;
+  transform-origin: center bottom; /* 하단을 중심으로 회전 */
+  cursor: url('/main/btn_viewmore.svg'), pointer;
 }
 
 .cardImage {
@@ -37,4 +96,64 @@
   height: 100%;
   object-fit: contain;
   aspect-ratio: 1 / 1;
+}
+
+/* 4, 6, 7, 8번 카드 이미지에 180도 회전 추가 */
+.cardItem:nth-child(4) .cardImage,
+.cardItem:nth-child(6) .cardImage,
+.cardItem:nth-child(7) .cardImage,
+.cardItem:nth-child(8) .cardImage {
+  transform: rotate(180deg);
+}
+
+.textContainer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0;
+  filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.60));
+}
+
+.textContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.textLine {
+  color: var(--primary-color, #8840F4);
+  font-family: Urbanist, sans-serif;
+  font-size: 6.875rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.textLine .uppercase {
+  color: #FFF;
+  font-family: Urbanist, sans-serif;
+  font-size: 6.875rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.customCursor {
+  position: fixed;
+  width: 8.25rem;
+  height: 8.25rem;
+  background-image: url('/main/btn_viewmore.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  pointer-events: auto;
+  cursor: none;
+  z-index: 1000;
+  transform: translate(-50%, -50%);
+  will-change: transform;
 }

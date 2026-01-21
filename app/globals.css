@@ -3,6 +3,7 @@
   --foreground: #ededed;
   --font-sans: var(--font-urbanist), var(--font-noto-sans-kr), sans-serif;
   --font-mono: monospace;
+  --primary-color: #8840F4;
 }
 
 * {
@@ -13,6 +14,9 @@
 
 html {
   scroll-behavior: smooth;
+  /* 1920px 기준 1rem = 16px (60px = 3.75rem) */
+  /* vw 기반으로 선형 스케일, 모바일/대형 화면에서 안전한 범위로 클램프 */
+  font-size: clamp(12px, 0.833vw, 18px);
 }
 
 body {
@@ -28,20 +32,20 @@ canvas {
   outline: none;
 }
 
-/* 스크롤바 스타일링 (선택사항) */
+/* 스크롤바 스타일링 */
 ::-webkit-scrollbar {
-  width: 0.5rem;
+  width: 0.75rem;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(0, 0, 0, 0.1);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 0.25rem;
+  background: rgba(136, 64, 244, 0.5);
+  border-radius: 0.375rem;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(136, 64, 244, 0.7);
 }

@@ -2,6 +2,7 @@
   min-height: 100vh;
   background: black;
   position: relative;
+  background: #131313;
 }
 
 .backgroundImage {
@@ -32,7 +33,7 @@
   min-height: 100vh;
   padding: 3rem 1rem;
   z-index: 10;
-  display: none; /* 일단 숨김 */
+  display: block;
 }
 
 @media (min-width: 48rem) {
@@ -56,9 +57,30 @@
   }
 }
 
+.pathTextContainer {
+  margin-bottom: 3rem;
+}
+
+.pathText {
+  color: #FFF;
+  text-align: center;
+  font-family: Poppins;
+  font-size: 3.75rem;
+  font-style: normal;
+  font-weight: 300;
+  line-height: 160%; /* 6rem */
+  margin: 0;
+  margin-bottom: 10rem;
+}
+
+.pathText:last-child {
+  margin-bottom: 0;
+}
+
 .pathContainer {
   height: 12rem;
 }
+
 
 @media (min-width: 48rem) {
   .pathContainer {

@@ -1,13 +1,19 @@
 'use client';
 
 import Image from 'next/image';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useMemo } from 'react';
 import Navigation from '@/components/Navigation';
 import ThreeScene from '@/components/ThreeScene';
 import PathAnimation from '@/components/PathAnimation';
 import Hero3D from '@/components/Hero3D';
-import RotationControls from '@/components/RotationControls';
 import FloatingCards from '@/components/FloatingCards';
+import CardFlipSection from '@/components/CardFlipSection';
+import FeatureSection from '@/components/FeatureSection';
+import ExperienceSection from '@/components/ExperienceSection';
+import FAQSection from '@/components/FAQSection';
+import SlotSection from '@/components/SlotSection';
+import ContactSection from '@/components/ContactSection';
+import CookiePolicyModal from '@/components/CookiePolicyModal';
 import styles from './page.module.css';
 import { useState } from 'react';
 import gsap from 'gsap';
@@ -18,8 +24,11 @@ if (typeof window !== 'undefined') {
 }
 
 export default function Home() {
+  const gsapVh = useMemo(() => (typeof window !== 'undefined' ? window.innerHeight / 100 : 0), []);
   const mainRef = useRef<HTMLElement>(null);
   const heroSectionRef = useRef<HTMLElement>(null);
+  const backgroundImageRef = useRef<HTMLDivElement>(null);
+  const navigationRef = useRef<HTMLElement>(null);
   const [globeRotation, setGlobeRotation] = useState<[number, number, number]>([0.13, 0, 0]);
   const [ringRotation, setRingRotation] = useState<[number, number, number]>([0.06, 0, 0]);
   const [ringRadiusMultiplier, setRingRadiusMultiplier] = useState(1.27);
@@ -28,10 +37,63 @@ export default function Home() {
   const cameraPosition: [number, number, number] = [0, 2, 8.5];
   const cameraRotation: [number, number, number] = [-0.15, 0, -0.2];
   
+  useEffect(() => {
+    const scrollY = window.scrollY || window.pageYOffset;
+    const isAtTop = scrollY === 0;
+
+    if (isAtTop && backgroundImageRef.current && navigationRef.current) {
+      const backgroundImage = backgroundImageRef.current;
+      const navigation = navigationRef.current;
+      const navHeight = navigation.offsetHeight;
+
+      gsap.set(backgroundImage, { opacity: 0 });
+      gsap.set(navigation, { y: -navHeight });
+
+      const introTimeline = gsap.timeline();
+
+      introTimeline.to(backgroundImage, {
+        opacity: 1,
+        duration: 2,
+        ease: 'power2.out',
+      });
+
+      introTimeline.to(navigation, {
+        y: 0,
+        duration: 1,
+        ease: 'power2.out',
+      }, '-=1');
+    } else {
+      if (backgroundImageRef.current) {
+        gsap.set(backgroundImageRef.current, { opacity: 1 });
+      }
+      if (navigationRef.current) {
+        gsap.set(navigationRef.current, { y: 0 });
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!backgroundImageRef.current) return;
+
+    const backgroundImage = backgroundImageRef.current;
+
+    const st = ScrollTrigger.create({
+      trigger: heroSectionRef.current,
+      start: () => `top -${160 * gsapVh}px`,
+      end: () => `+=${40 * gsapVh}px`,
+      scrub: true,
+      onUpdate: (self) => {
+        const opacity = 1 - self.progress;
+        gsap.set(backgroundImage, { opacity });
+      },
+    });
+
+    return () => st?.kill();
+  }, [gsapVh]);
+  
   return (
     <main ref={mainRef} className={styles.main}>
-      {/* 배경 이미지 */}
-      <div className={styles.backgroundImage}>
+      <div ref={backgroundImageRef} className={styles.backgroundImage}>
         <Image
           src="/main/bg_main.jpg"
           alt="Background"
@@ -41,19 +103,8 @@ export default function Home() {
         <div className={styles.backgroundOverlay} />
       </div>
       
-      <Navigation />
+      <Navigation ref={navigationRef} />
       
-      {/* 3D 오브젝트 설정 컨트롤 */}
-      <RotationControls
-        globeRotation={globeRotation}
-        ringRotation={ringRotation}
-        ringRadiusMultiplier={ringRadiusMultiplier}
-        onGlobeRotationChange={setGlobeRotation}
-        onRingRotationChange={setRingRotation}
-        onRingRadiusMultiplierChange={setRingRadiusMultiplier}
-      />
-      
-      {/* Hero Section with 3D Earth */}
       <section ref={heroSectionRef} className={styles.heroSection}>
         <ThreeScene>
           <Hero3D 
@@ -68,21 +119,22 @@ export default function Home() {
           />
         </ThreeScene>
         
-        {/* 플로팅 카드들 */}
         <FloatingCards scrollTriggerRef={heroSectionRef} />
       </section>
 
-      {/* Path Animation Section */}
-      <section className={styles.pathSection}>
-        <div className={styles.sectionContainer}>
-          <h2 className={styles.pathTitle}>
-            Path 그리기 애니메이션
-          </h2>
-          <div className={styles.pathContainer}>
-            <PathAnimation pathId="main-path" />
-          </div>
-        </div>
-      </section>
+      <CardFlipSection />
+
+      <PathAnimation />
+
+      <FeatureSection />
+
+      <ExperienceSection />
+
+      <FAQSection />
+
+      <SlotSection />
+      <ContactSection />
+      <CookiePolicyModal />
     </main>
   );
 }
