@@ -4,7 +4,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState, useRef, forwardRef } from 'react';
-import gsap from 'gsap';
 import styles from './Navigation.module.css';
 
 const gnbItems = [
@@ -19,62 +18,39 @@ const Navigation = forwardRef<HTMLElement>((props, ref) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [language, setLanguage] = useState<'EN' | 'KO'>('EN');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [scrollClass, setScrollClass] = useState<'downScroll' | 'upScroll' | ''>('');
   const navRef = useRef<HTMLElement>(null);
   const lastScrollY = useRef(0);
-  const isScrollingDown = useRef(false);
   const combinedRef = (ref || navRef) as React.RefObject<HTMLElement>;
 
   useEffect(() => {
-    let rafId: number | null = null;
-    let lastScrollTime = 0;
-    const throttleDelay = 16; // ~60fps
-
     const handleScroll = () => {
-      const currentTime = Date.now();
-      
-      if (currentTime - lastScrollTime < throttleDelay) {
-        if (rafId) cancelAnimationFrame(rafId);
-        rafId = requestAnimationFrame(() => {
-          lastScrollTime = Date.now();
-          updateNavigation();
-        });
-        return;
-      }
-
-      lastScrollTime = currentTime;
-      updateNavigation();
-    };
-
-    const updateNavigation = () => {
       const currentScrollY = window.scrollY;
       setIsScrolled(currentScrollY > 50);
 
       const navElement = combinedRef.current;
       
       if (navElement) {
-        const navHeight = navElement.offsetHeight;
+        // 네비게이션의 실제 높이를 정확히 계산하고 CSS 변수로 설정
+        const navHeight = navElement.getBoundingClientRect().height;
+        const hideDistance = navHeight + 20; // 높이 + 20px
+        navElement.style.setProperty('--nav-height', `${navHeight}px`);
+        navElement.style.setProperty('--hide-distance', `-${hideDistance}px`);
         
-        // 이전 애니메이션 취소하여 덜덜거림 방지
-        gsap.killTweensOf(navElement);
+        // 스크롤이 맨 위에 있으면 클래스 제거
+        if (currentScrollY <= 0) {
+          setScrollClass('');
+          lastScrollY.current = currentScrollY;
+          return;
+        }
         
+        // 스크롤 다운 시 downScroll 클래스 추가
         if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
-          if (!isScrollingDown.current) {
-            isScrollingDown.current = true;
-            gsap.to(navElement, {
-              y: -navHeight,
-              duration: 0.4,
-              ease: 'power3.out',
-            });
-          }
-        } else if (currentScrollY < lastScrollY.current) {
-          if (isScrollingDown.current) {
-            isScrollingDown.current = false;
-            gsap.to(navElement, {
-              y: 0,
-              duration: 0.4,
-              ease: 'power3.out',
-            });
-          }
+          setScrollClass('downScroll');
+        } 
+        // 스크롤 업 시 upScroll 클래스 추가
+        else if (currentScrollY < lastScrollY.current) {
+          setScrollClass('upScroll');
         }
       }
 
@@ -84,15 +60,11 @@ const Navigation = forwardRef<HTMLElement>((props, ref) => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      if (rafId) cancelAnimationFrame(rafId);
-      if (combinedRef.current) {
-        gsap.killTweensOf(combinedRef.current);
-      }
     };
   }, []);
 
   return (
-    <nav ref={combinedRef} className={styles.nav}>
+    <nav ref={combinedRef} className={`${styles.nav} ${scrollClass ? styles[scrollClass] : ''}`}>
       <div className={styles.container}>
         {/* 데스크톱: GNB 메뉴 - 가운데 위치 */}
         <div className={styles.desktopGnb}>

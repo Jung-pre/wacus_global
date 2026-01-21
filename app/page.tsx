@@ -41,13 +41,10 @@ export default function Home() {
     const scrollY = window.scrollY || window.pageYOffset;
     const isAtTop = scrollY === 0;
 
-    if (isAtTop && backgroundImageRef.current && navigationRef.current) {
+    if (isAtTop && backgroundImageRef.current) {
       const backgroundImage = backgroundImageRef.current;
-      const navigation = navigationRef.current;
-      const navHeight = navigation.offsetHeight;
 
       gsap.set(backgroundImage, { opacity: 0 });
-      gsap.set(navigation, { y: -navHeight });
 
       const introTimeline = gsap.timeline();
 
@@ -56,18 +53,9 @@ export default function Home() {
         duration: 2,
         ease: 'power2.out',
       });
-
-      introTimeline.to(navigation, {
-        y: 0,
-        duration: 1,
-        ease: 'power2.out',
-      }, '-=1');
     } else {
       if (backgroundImageRef.current) {
         gsap.set(backgroundImageRef.current, { opacity: 1 });
-      }
-      if (navigationRef.current) {
-        gsap.set(navigationRef.current, { y: 0 });
       }
     }
   }, []);
