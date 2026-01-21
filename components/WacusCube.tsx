@@ -186,7 +186,7 @@ const Cubelet: React.FC<CubeletProps> = ({ position, faces }) => {
           </mesh>
           <Text
             position={[0, 0, 0.01]}
-            fontSize={0.3}
+            fontSize={0.45}
             color="white"
             anchorX="center"
             anchorY="middle"
@@ -194,8 +194,6 @@ const Cubelet: React.FC<CubeletProps> = ({ position, faces }) => {
             depthTest={false}
             depthWrite={false}
             renderOrder={2}
-            outlineWidth={0.02}
-            outlineColor="#000000"
           >
             {faces.front.letter || ''}
           </Text>
@@ -216,7 +214,7 @@ const Cubelet: React.FC<CubeletProps> = ({ position, faces }) => {
           </mesh>
           <Text
             position={[0, 0, 0.01]}
-            fontSize={0.3}
+            fontSize={0.45}
             color="white"
             anchorX="center"
             anchorY="middle"
@@ -224,8 +222,6 @@ const Cubelet: React.FC<CubeletProps> = ({ position, faces }) => {
             depthTest={false}
             depthWrite={false}
             renderOrder={2}
-            outlineWidth={0.02}
-            outlineColor="#000000"
           >
             {faces.back.letter || ''}
           </Text>
@@ -246,7 +242,7 @@ const Cubelet: React.FC<CubeletProps> = ({ position, faces }) => {
           </mesh>
           <Text
             position={[0, 0, 0.01]}
-            fontSize={0.3}
+            fontSize={0.45}
             color="white"
             anchorX="center"
             anchorY="middle"
@@ -254,8 +250,7 @@ const Cubelet: React.FC<CubeletProps> = ({ position, faces }) => {
             depthTest={false}
             depthWrite={false}
             renderOrder={2}
-            outlineWidth={0.02}
-            outlineColor="#000000"
+            
           >
             {faces.right.letter || ''}
           </Text>
@@ -276,7 +271,7 @@ const Cubelet: React.FC<CubeletProps> = ({ position, faces }) => {
           </mesh>
           <Text
             position={[0, 0, 0.01]}
-            fontSize={0.3}
+            fontSize={0.45}
             color="white"
             anchorX="center"
             anchorY="middle"
@@ -284,8 +279,6 @@ const Cubelet: React.FC<CubeletProps> = ({ position, faces }) => {
             depthTest={false}
             depthWrite={false}
             renderOrder={2}
-            outlineWidth={0.02}
-            outlineColor="#000000"
           >
             {faces.left.letter || ''}
           </Text>
@@ -306,7 +299,7 @@ const Cubelet: React.FC<CubeletProps> = ({ position, faces }) => {
           </mesh>
           <Text
             position={[0, 0, 0.01]}
-            fontSize={0.3}
+            fontSize={0.45}
             color="white"
             anchorX="center"
             anchorY="middle"
@@ -315,8 +308,7 @@ const Cubelet: React.FC<CubeletProps> = ({ position, faces }) => {
             depthTest={false}
             depthWrite={false}
             renderOrder={2}
-            outlineWidth={0.02}
-            outlineColor="#000000"
+            
           >
             {faces.top.letter || ''}
           </Text>
@@ -337,7 +329,7 @@ const Cubelet: React.FC<CubeletProps> = ({ position, faces }) => {
           </mesh>
           <Text
             position={[0, 0, 0.01]}
-            fontSize={0.3}
+            fontSize={0.45}
             color="white"
             anchorX="center"
             anchorY="middle"
@@ -346,8 +338,6 @@ const Cubelet: React.FC<CubeletProps> = ({ position, faces }) => {
             depthTest={false}
             depthWrite={false}
             renderOrder={2}
-            outlineWidth={0.02}
-            outlineColor="#000000"
           >
             {faces.bottom.letter || ''}
           </Text>
@@ -464,10 +454,8 @@ export default function WacusCube({
       if (groupRef.current) {
         const totalRotation = -2 * Math.PI * scrollProgress; // 역방향 1바퀴
         groupRef.current.setRotationFromAxisAngle(fullCubeAxisRef.current, totalRotation);
-        // 스케일: 1.3 -> 1.0으로 보간
-        const startScale = 1.3;
-        const s = startScale + (1 - startScale) * scrollProgress;
-        groupRef.current.scale.setScalar(s);
+        // 스케일 1.3으로 고정
+        groupRef.current.scale.setScalar(1.3);
       }
       
       return; // 스크롤 기반 회전이면 자동 회전 로직 건너뛰기
@@ -541,8 +529,8 @@ export default function WacusCube({
       scale={scale}
       rotation={rotation}
     >
-      {/* 1. left면(x=-1) 그룹 */}
-      <group ref={leftFaceRef} position={[-1 * spacing, 0 * spacing, 0 * spacing]}>
+      {/* 1. left면(x=-1) 그룹 - 회전 중심을 원점으로 맞추기 위해 position을 [0,0,0]으로 설정 */}
+      <group ref={leftFaceRef} position={[0, 0, 0]}>
         {cubeData.map((layer, zIndex) =>
           layer.map((row, yIndex) => {
             const y = 1 - yIndex;
@@ -552,13 +540,10 @@ export default function WacusCube({
             
             if (!cubeFaces) return null;
             
-            // left면의 5번 큐브(x=-1, y=0, z=0)를 중심으로 상대 위치 계산
-            const centerX = -1;
-            const centerY = 0;
-            const centerZ = 0;
-            const posX = (x - centerX) * spacing; // 항상 0
-            const posY = (y - centerY) * spacing; // y * spacing
-            const posZ = (z - centerZ) * spacing; // z * spacing
+            // left면의 큐브들을 원점 기준으로 배치 (회전 중심이 원점이 되도록)
+            const posX = x * spacing; // x * spacing (원점 기준)
+            const posY = y * spacing; // y * spacing
+            const posZ = z * spacing; // z * spacing
             
             return (
               <group key={`left-${zIndex}-${yIndex}`} position={[posX, posY, posZ]}>

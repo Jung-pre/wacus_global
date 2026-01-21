@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useThree } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -18,9 +19,9 @@ function CameraSetupPath() {
   const { camera } = useThree();
   
   useEffect(() => {
-    // 카메라 위치 설정 (거리 4, 각도 유지)
+    // 카메라 위치 설정 (거리 10, 각도 유지)
     // 수평 각도: -35.92°, 수직 각도: 66.79°
-    const targetDistance = 5;
+    const targetDistance = 13;
     const azimuth = -35.92 * Math.PI / 180; // 수평 각도
     const polar = 66.79 * Math.PI / 180; // 수직 각도
     
@@ -29,9 +30,16 @@ function CameraSetupPath() {
     const y = targetDistance * Math.cos(polar);
     const z = targetDistance * Math.sin(polar) * Math.cos(azimuth);
     
-    // 거리가 정확히 6이 되도록 정규화
+    // 거리가 정확히 10이 되도록 정규화
     const currentDistance = Math.sqrt(x * x + y * y + z * z);
     const scale = targetDistance / currentDistance;
+    
+    // 카메라 FOV 조정 (기본 75도에서 35도로 줄여서 왜곡 감소)
+    if (camera instanceof THREE.PerspectiveCamera) {
+      camera.fov = 35;
+      camera.near = 0.1;
+      camera.far = 1000;
+    }
     
     camera.position.set(x * scale, y * scale, z * scale);
     // 타겟을 바라보도록 설정
@@ -296,16 +304,15 @@ export default function FeatureSection() {
         </div>
         <div ref={graphicContainer1Ref} className={styles.graphicContainer} data-graphic-container="1">
           <ThreeScene className={styles.cubeScene}>
-            <ambientLight intensity={0.35} />
-            <directionalLight position={[6, 6, 6]} intensity={1.1} />
-            <directionalLight position={[-4, 2, 5]} intensity={0.6} />
-            <directionalLight position={[0, 4, -6]} intensity={0.4} />
+            <ambientLight intensity={0.95} />
+            <directionalLight position={[6, 6, 6]} intensity={1.4} />
+            <directionalLight position={[-4, 2, 5]} intensity={1.4} />
+            <directionalLight position={[0, 4, -6]} intensity={1.4} />
             {/* 카메라 위치 조정 - 거리 6, 각도 유지 */}
             <CameraSetupPath />
+            
             <WacusCube 
               position={[0, 0, 0]}
-              rotation={[0, 0, 0]}
-              scale={1.2}
               scrollProgress={cubeScrollProgress}
             />
           </ThreeScene>
