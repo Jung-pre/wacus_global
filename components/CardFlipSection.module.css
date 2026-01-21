@@ -1,6 +1,6 @@
 .cardFlipSection {
   position: relative;
-  height: 200vh;
+  height: 250vh; /* height 증가: 200vh -> 250vh */
   width: 100%;
   z-index: 10;
   margin: 0;
@@ -71,25 +71,25 @@
 /* 2번 카드 */
 .cardsGroup > .card:nth-child(1) {
   left: 50%;
-  transform: translate(-400px, -50%) translateZ(80px);
+  transform: translate(calc(-25vw - 0px), -50%) translateZ(80px);
 }
 
 /* 3번 카드 */
 .cardsGroup > .card:nth-child(2) {
   left: 50%;
-  transform: translate(20px, -50%) translateZ(60px);
+  transform: translate(calc(1.25vw + 0px), -50%) translateZ(60px);
 }
 
 /* 4번 카드 */
 .cardsGroup > .card:nth-child(3) {
   left: 50%;
-  transform: translate(-500px, -50%) translateZ(40px);
+  transform: translate(calc(-31.25vw - 0px), -50%) translateZ(40px);
 }
 
 /* 5번 카드 */
 .cardsGroup > .card:nth-child(4) {
   left: 50%;
-  transform: translate(-80px, -50%) translateZ(20px);
+  transform: translate(calc(-5vw - 0px), -50%) translateZ(20px);
 }
 
 .cardInner {

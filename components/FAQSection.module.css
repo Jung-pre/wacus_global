@@ -1,9 +1,9 @@
 .faqSection {
   display: flex;
-  padding: 15rem 9rem;
+  padding: clamp(5rem, 15vw, 15rem) clamp(1rem, 9vw, 9rem);
   flex-direction: column;
   align-items: flex-start;
-  gap: 7.5rem;
+  gap: clamp(3rem, 7.5vw, 7.5rem);
   position: relative;
   background: #131313;
   width: 100%;
@@ -12,11 +12,11 @@
 .faqTitle {
   color: #FFF;
   font-family: Urbanist, sans-serif;
-  font-size: 6.875rem;
+  font-size: clamp(3rem, 6.875vw, 6.875rem);
   font-style: normal;
   font-weight: 700;
-  line-height: 100%; /* 6.875rem */
-  letter-spacing: -0.275rem;
+  line-height: 100%;
+  letter-spacing: clamp(-0.15rem, -0.275vw, -0.275rem);
   margin: 0;
 }
 
@@ -55,8 +55,8 @@
 .faqQuestion {
   display: flex;
   align-items: center;
-  gap: 1.88rem;
-  padding: 3.125rem 5.75rem 3.125rem 7.875rem;
+  gap: clamp(1rem, 1.88vw, 1.88rem);
+  padding: clamp(1.5rem, 3.125vw, 3.125rem) clamp(2rem, 5.75vw, 5.75rem) clamp(1.5rem, 3.125vw, 3.125rem) clamp(2rem, 7.875vw, 7.875rem);
   transition: padding-bottom 0.4s ease;
 }
 
@@ -83,10 +83,10 @@
   flex: 1;
   color: #585858;
   font-family: Urbanist;
-  font-size: 2.5rem;
+  font-size: clamp(1.25rem, 2.5vw, 2.5rem);
   font-style: normal;
   font-weight: 700;
-  line-height: 150%; /* 3.75rem */
+  line-height: 150%;
   transition: color 0.3s ease;
 }
 
@@ -123,8 +123,8 @@
 
 .faqAnswer {
   display: flex;
-  gap: 1.75rem;
-  padding: 0 0 0 9.375rem;
+  gap: clamp(1rem, 1.75vw, 1.75rem);
+  padding: 0 0 0 clamp(2rem, 9.375vw, 9.375rem);
   max-height: 0;
   overflow: hidden;
   opacity: 0;
@@ -152,13 +152,13 @@
   flex: 0 1 auto;
   color: #585858;
   font-family: Urbanist;
-  font-size: 1.5rem;
+  font-size: clamp(1rem, 1.5vw, 1.5rem);
   font-style: normal;
   font-weight: 500;
-  line-height: 150%; /* 2.25rem */
+  line-height: 150%;
   transition: color 0.3s ease;
-  max-width: 67.5rem;
-  width: 67.5rem;
+  max-width: clamp(20rem, 67.5vw, 67.5rem);
+  width: clamp(20rem, 67.5vw, 67.5rem);
 }
 
 .faqItemOpen .answerText {

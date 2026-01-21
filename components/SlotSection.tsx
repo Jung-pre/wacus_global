@@ -59,8 +59,8 @@ export default function SlotSection() {
     if (!firstItem1 || !firstItem2) return;
 
     const itemHeight = firstItem1.offsetHeight; // 실제 렌더링된 높이
-    const totalItems1 = 30; // 1번 컬럼 아이템 수
-    const totalItems2 = 30; // 2번, 3번 컬럼 아이템 수
+    const totalItems1 = 15; // 1번 컬럼 아이템 수
+    const totalItems2 = 15; // 2번, 3번 컬럼 아이템 수
     
     // 컨테이너 높이 가져오기 (빈 화면 계산용)
     const container = sectionRef.current.querySelector(`.${styles.slotContainer}`) as HTMLElement;
@@ -112,7 +112,8 @@ export default function SlotSection() {
       if (!slot) return;
       const items = slot.querySelectorAll(`.${styles.slotItem}`);
       items.forEach((item, index) => {
-        if (index !== 1) {
+        // 2번째 아이템이 아니고, 화면에 보이는 아이템(0, 1, 2번)만 opacity 적용
+        if (index !== 1 && index < 3) {
           nonSecondItems.push(item as HTMLElement);
         }
       });
@@ -127,46 +128,49 @@ export default function SlotSection() {
         trigger: sectionRef.current,
         start: 'top top',
         end: () => `+=${250 * gsapVh}`,
-        scrub: 1,
+        scrub: 2, // 성능 최적화: 업데이트 빈도 감소 (1 -> 2)
         invalidateOnRefresh: true,
       },
     });
 
     // 모든 모션을 타임라인에 추가 (기존 순서 유지)
     // 1. 슬롯들이 위로 올라갔다가 0으로 내려옴 (각각 다른 delay)
-    tl.to(slot1_1Ref.current, { y: startOffset1, duration: 0.1, ease: 'none' }, 0)
-      .to(slot1_1Ref.current, { y: targetOffset, duration: 3.5, ease: 'power2.out' }, 0.1)
-      .to(slot1_2Ref.current, { y: startOffset1, duration: 0.1, ease: 'none' }, 0.15)
-      .to(slot1_2Ref.current, { y: targetOffset, duration: 3.7, ease: 'power2.out' }, 0.25)
-      .to(slot2_1Ref.current, { y: startOffset2, duration: 0.1, ease: 'none' }, 0.3)
-      .to(slot2_1Ref.current, { y: targetOffset, duration: 3.5, ease: 'power2.out' }, 0.4)
-      .to(slot2_2Ref.current, { y: startOffset2, duration: 0.1, ease: 'none' }, 0.45)
-      .to(slot2_2Ref.current, { y: targetOffset, duration: 3.7, ease: 'power2.out' }, 0.55)
-      .to(slot3_1Ref.current, { y: startOffset2, duration: 0.1, ease: 'none' }, 0.6)
-      .to(slot3_1Ref.current, { y: targetOffset, duration: 3.5, ease: 'power2.out' }, 0.7)
-      .to(slot3_2Ref.current, { y: startOffset2, duration: 0.1, ease: 'none' }, 0.75)
-      .to(slot3_2Ref.current, { y: targetOffset, duration: 3.7, ease: 'power2.out' }, 0.85)
+    // force3D: true로 하드웨어 가속 강제
+    tl.to(slot1_1Ref.current, { y: startOffset1, duration: 0.1, ease: 'none', force3D: true }, 0)
+      .to(slot1_1Ref.current, { y: targetOffset, duration: 3.5, ease: 'power2.out', force3D: true }, 0.1)
+      .to(slot1_2Ref.current, { y: startOffset1, duration: 0.1, ease: 'none', force3D: true }, 0.15)
+      .to(slot1_2Ref.current, { y: targetOffset, duration: 3.7, ease: 'power2.out', force3D: true }, 0.25)
+      .to(slot2_1Ref.current, { y: startOffset2, duration: 0.1, ease: 'none', force3D: true }, 0.3)
+      .to(slot2_1Ref.current, { y: targetOffset, duration: 3.5, ease: 'power2.out', force3D: true }, 0.4)
+      .to(slot2_2Ref.current, { y: startOffset2, duration: 0.1, ease: 'none', force3D: true }, 0.45)
+      .to(slot2_2Ref.current, { y: targetOffset, duration: 3.7, ease: 'power2.out', force3D: true }, 0.55)
+      .to(slot3_1Ref.current, { y: startOffset2, duration: 0.1, ease: 'none', force3D: true }, 0.6)
+      .to(slot3_1Ref.current, { y: targetOffset, duration: 3.5, ease: 'power2.out', force3D: true }, 0.7)
+      .to(slot3_2Ref.current, { y: startOffset2, duration: 0.1, ease: 'none', force3D: true }, 0.75)
+      .to(slot3_2Ref.current, { y: targetOffset, duration: 3.7, ease: 'power2.out', force3D: true }, 0.85)
       // 2. nonSecondItems opacity 0 (슬롯 애니메이션 완료 후)
       .to(nonSecondItems, {
         opacity: 0,
         duration: 0.5,
         ease: 'power2.out',
         stagger: 0.02,
+        force3D: true, // 하드웨어 가속
       }, 4.6)
       // 3. column1, column3 opacity 0 (delay 0.5)
-      .to(column1Ref.current, { opacity: 0, duration: 0.5, ease: 'power2.out' }, 5.1)
-      .to(column3Ref.current, { opacity: 0, duration: 0.5, ease: 'power2.out' }, 5.1)
+      .to(column1Ref.current, { opacity: 0, duration: 0.5, ease: 'power2.out', force3D: true }, 5.1)
+      .to(column3Ref.current, { opacity: 0, duration: 0.5, ease: 'power2.out', force3D: true }, 5.1)
       // 4. column2 transform-origin 설정 및 확대
-      .set(column2Ref.current, { transformOrigin: '50% 5%' }, 5.1)
+      .set(column2Ref.current, { transformOrigin: '50% 9.5%' }, 5.1)
       .to(column2Ref.current, {
         scaleX: 2.16,
         scaleY: 2.17,
         duration: 1,
         ease: 'power2.out',
+        force3D: true, // 하드웨어 가속
       }, 5.6)
       // 5. finalSVG opacity 1 + slotContainer opacity 0
-      .to(finalSVGRef.current, { opacity: 1, duration: 0.5, ease: 'power2.out' }, 6.6)
-      .to(slotContainerRef.current, { opacity: 0, duration: 0.5, ease: 'power2.out' }, 6.6)
+      .to(finalSVGRef.current, { opacity: 1, duration: 0.5, ease: 'power2.out', force3D: true }, 6.6)
+      .to(slotContainerRef.current, { opacity: 0, duration: 0.5, ease: 'power2.out', force3D: true }, 6.6)
       // 6. finalPath fill 변경
       .to(finalPath, {
         attr: { fill: '#8840F4' },
@@ -175,9 +179,9 @@ export default function SlotSection() {
       }, 7.1)
       // 7. finalSVG transform-origin 변경 및 scale 10
       .set(finalSVGRef.current, { transformOrigin: '50% 24%' }, 7.1)
-      .to(finalSVGRef.current, { scale: 10, duration: 0.8, ease: 'power2.inOut' }, 7.1)
+      .to(finalSVGRef.current, { scale: 10, duration: 0.8, ease: 'power2.inOut', force3D: true }, 7.1)
       // 8. column2 opacity 0
-      .to(column2Ref.current, { opacity: 0, duration: 0.3, ease: 'power2.out' }, 7.9);
+      .to(column2Ref.current, { opacity: 0, duration: 0.3, ease: 'power2.out', force3D: true }, 7.9);
 
     return () => {
       tl.kill();
@@ -192,7 +196,7 @@ export default function SlotSection() {
           {/* 1번 컬럼: 1번 SVG 슬롯과 2번 SVG 슬롯이 가로로 나란히 */}
           <div ref={column1Ref} className={styles.slotColumn}>
           <div ref={slot1_1Ref} className={styles.singleSlot}>
-            {Array.from({ length: 30 }, (_, i) => {
+            {Array.from({ length: 15 }, (_, i) => {
               // 기본 색상: #141414
               // 정답(2번째, i === 1)만: #2C2C2C
               // 중간중간에 #0B0B0B (빠진 것처럼)
@@ -209,6 +213,7 @@ export default function SlotSection() {
                     viewBox={slotSVGs[0].viewBox}
                     fill="none"
                     className={styles.slotSVG}
+                    shapeRendering="optimizeSpeed"
                   >
                     <path d={slotSVGs[0].path} fill={fillColor} />
                   </svg>
@@ -217,7 +222,7 @@ export default function SlotSection() {
             })}
           </div>
           <div ref={slot1_2Ref} className={styles.singleSlot}>
-            {Array.from({ length: 30 }, (_, i) => {
+            {Array.from({ length: 15 }, (_, i) => {
               // 기본 색상: #141414
               // 정답(2번째, i === 1)만: #2C2C2C
               // 중간중간에 #0B0B0B (빠진 것처럼)
@@ -234,6 +239,7 @@ export default function SlotSection() {
                     viewBox={slotSVGs[1].viewBox}
                     fill="none"
                     className={styles.slotSVG}
+                    shapeRendering="optimizeSpeed"
                   >
                     <path d={slotSVGs[1].path} fill={fillColor} />
                   </svg>
@@ -245,7 +251,7 @@ export default function SlotSection() {
         {/* 2번 컬럼 */}
         <div ref={column2Ref} className={styles.slotColumn}>
           <div ref={slot2_1Ref} className={styles.singleSlot}>
-            {Array.from({ length: 30 }, (_, i) => {
+            {Array.from({ length: 15 }, (_, i) => {
               // 기본 색상: #141414
               // 정답(2번째, i === 1)만: #2C2C2C
               // 중간중간에 #0B0B0B (빠진 것처럼)
@@ -262,6 +268,7 @@ export default function SlotSection() {
                     viewBox={slotSVGs[0].viewBox}
                     fill="none"
                     className={styles.slotSVG}
+                    shapeRendering="optimizeSpeed"
                   >
                     <path d={slotSVGs[0].path} fill={fillColor} />
                   </svg>
@@ -270,7 +277,7 @@ export default function SlotSection() {
             })}
           </div>
           <div ref={slot2_2Ref} className={styles.singleSlot}>
-            {Array.from({ length: 30 }, (_, i) => {
+            {Array.from({ length: 15 }, (_, i) => {
               // 기본 색상: #141414
               // 정답(2번째, i === 1)만: #2C2C2C
               // 중간중간에 #0B0B0B (빠진 것처럼)
@@ -287,6 +294,7 @@ export default function SlotSection() {
                     viewBox={slotSVGs[1].viewBox}
                     fill="none"
                     className={styles.slotSVG}
+                    shapeRendering="optimizeSpeed"
                   >
                     <path d={slotSVGs[1].path} fill={fillColor} />
                   </svg>
@@ -298,7 +306,7 @@ export default function SlotSection() {
         {/* 3번 컬럼 */}
         <div ref={column3Ref} className={styles.slotColumn}>
           <div ref={slot3_1Ref} className={styles.singleSlot}>
-            {Array.from({ length: 30 }, (_, i) => {
+            {Array.from({ length: 15 }, (_, i) => {
               // 기본 색상: #141414
               // 정답(2번째, i === 1)만: #2C2C2C
               // 중간중간에 #0B0B0B (빠진 것처럼)
@@ -315,6 +323,7 @@ export default function SlotSection() {
                     viewBox={slotSVGs[0].viewBox}
                     fill="none"
                     className={styles.slotSVG}
+                    shapeRendering="optimizeSpeed"
                   >
                     <path d={slotSVGs[0].path} fill={fillColor} />
                   </svg>
@@ -323,7 +332,7 @@ export default function SlotSection() {
             })}
           </div>
           <div ref={slot3_2Ref} className={styles.singleSlot}>
-            {Array.from({ length: 30 }, (_, i) => {
+            {Array.from({ length: 15 }, (_, i) => {
               // 기본 색상: #141414
               // 정답(2번째, i === 1)만: #2C2C2C
               // 중간중간에 #0B0B0B (빠진 것처럼)
@@ -340,6 +349,7 @@ export default function SlotSection() {
                     viewBox={slotSVGs[1].viewBox}
                     fill="none"
                     className={styles.slotSVG}
+                    shapeRendering="optimizeSpeed"
                   >
                     <path d={slotSVGs[1].path} fill={fillColor} />
                   </svg>

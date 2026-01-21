@@ -145,30 +145,29 @@ line-height: normal;
 
 .contactButton {
   display: flex;
-height: 5rem;
-padding: 1.3125rem 16.25rem;
-justify-content: center;
-align-items: center;
-gap: 0.625rem;
-align-self: stretch;
+  height: clamp(3rem, 5vw, 5rem);
+  padding: clamp(1rem, 1.3125vw, 1.3125rem) clamp(2rem, 16.25vw, 16.25rem);
+  justify-content: center;
+  align-items: center;
+  gap: clamp(0.5rem, 0.625vw, 0.625rem);
+  align-self: stretch;
   cursor: pointer;
   background: #3F1A77;
   color: #FFF;
-
-font-family: Urbanist;
-font-size: 1.5rem;
-font-style: normal;
-font-weight: 600;
-line-height: normal;
-text-transform: uppercase;
-border:0;
+  font-family: Urbanist;
+  font-size: clamp(1rem, 1.5vw, 1.5rem);
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  text-transform: uppercase;
+  border:0;
 }
 
 .contactInfo {
   display: flex;
-  width: 40.5625rem;
+  width: clamp(20rem, 40.5625vw, 40.5625rem);
   align-items: flex-start;
-  gap: 10rem;
+  gap: clamp(2rem, 10vw, 10rem);
 }
 
 .contactList {

@@ -2,11 +2,11 @@
   position: relative;
   width: 100%;
   min-height: 100vh;
-  padding: 10rem 9rem;
+  padding: clamp(3rem, 10vw, 10rem) clamp(1rem, 9vw, 9rem);
   background: #131313;
   display: flex;
   flex-direction: column;
-  gap: 8rem;
+  gap: clamp(4rem, 8vw, 8rem);
   z-index: 12;
 }
 
@@ -14,19 +14,21 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 4rem;
-  min-height: 27.5rem;
+  gap: clamp(2rem, 4vw, 4rem);
+  min-height: clamp(20rem, 27.5vw, 27.5rem);
   width: 100%;
   margin: 0 auto;
   position: relative;
 }
 .featureItem:first-child .graphicContainer {
-  top: -63rem;
-  right: 27rem;
+  top: clamp(-40rem, -63vw, -63rem);
+  right: clamp(0, 27vw, 27rem);
   opacity: 0.7;
 }
 
-.featureItem:nth-child(2) {padding-left:42rem;}
+.featureItem:nth-child(2) {
+  padding-left: clamp(0, 42vw, 42rem);
+}
 .featureItem:nth-child(2) .graphicContainer{
   left: 0;
   right: auto;
@@ -34,19 +36,19 @@
 .featureText {
   color: #585858;
   font-family: Urbanist, sans-serif;
-  font-size: 3.5rem;
+  font-size: clamp(2rem, 3.5vw, 3.5rem);
   font-style: normal;
   font-weight: 600;
-  line-height: 150%; /* 5.25rem */
+  line-height: 150%;
   margin: 0;
 }
 
 .graphicContainer {
   top:0;
-  width:27.5rem;
-  height: 27.5rem;
+  width: clamp(20rem, 27.5vw, 27.5rem);
+  height: clamp(20rem, 27.5vw, 27.5rem);
   position: absolute;
-  right:4.75rem;
+  right: clamp(1rem, 4.75vw, 4.75rem);
 }
 
 .featureScene {

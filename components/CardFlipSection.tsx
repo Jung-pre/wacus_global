@@ -61,7 +61,7 @@ export default function CardFlipSection() {
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
-          end: `+=${100 * gsapVh}px`,
+          end: `+=${150 * gsapVh}px`, // height 증가: 100vh -> 150vh
           scrub: true,
           invalidateOnRefresh: true,
         },
@@ -94,8 +94,8 @@ export default function CardFlipSection() {
       // 확대가 완료된 후 플립섹션 opacity를 0으로
       timeline.to(container, {
         opacity: 0,
-        duration: 0.1,
-        ease: 'none',
+        duration: 0.5, // duration 증가: 0.1 -> 0.5 (더 천천히 사라짐)
+        ease: 'power2.out', // 부드러운 이징
       }, 1.0); // 확대 완료(1.0) 후 시작
 
       // 2-5번 카드: 입체적으로 산개 (회전이 40%부터 90%까지)
@@ -143,7 +143,7 @@ export default function CardFlipSection() {
         scrollTrigger: {
           trigger: sectionRef.current,
           start: `top ${50 * gsapVh}px`,
-          end: `+=${50 * gsapVh}px`,
+          end: `+=${75 * gsapVh}px`, // 스케일 애니메이션 구간도 늘림: 50vh -> 75vh
           scrub: true,
           invalidateOnRefresh: true,
         },

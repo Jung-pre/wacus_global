@@ -23,12 +23,12 @@
   color: #FFF;
   text-align: center;
   font-family: Poppins;
-  font-size: 3.75rem;
+  font-size: clamp(2rem, 3.75vw, 3.75rem);
   font-style: normal;
   font-weight: 300;
-  line-height: 160%; /* 6rem */
+  line-height: 160%;
   margin: 0;
-  margin-bottom: 10rem;
+  margin-bottom: clamp(5rem, 10vw, 10rem);
   filter: grayscale(1);
   opacity: 0.4;
   transition: filter 0.3s ease, opacity 0.3s ease;
@@ -53,8 +53,8 @@
   position: absolute;
   top: 50%;
   left: 0;
-  width: 42.76625rem;
-  height: 5.244rem;
+  width: clamp(20rem, 42.76625vw, 42.76625rem);
+  height: clamp(2.5rem, 5.244vw, 5.244rem);
   transform: translateY(-50%) rotate(-3.812deg);
   background-image: url('/main/bg_path01.png');
   background-size: contain;
@@ -74,8 +74,8 @@
   position: absolute;
   top: 50%;
   left: 0;
-  width: 28.59219rem;
-  height: 6.645rem;
+  width: clamp(15rem, 28.59219vw, 28.59219rem);
+  height: clamp(3rem, 6.645vw, 6.645rem);
   transform: translate(-9%, -50%)rotate(-1.453deg);
   background-image: url('/main/bg_path02.png');
   background-size: contain;
@@ -136,14 +136,14 @@
 }
 
 .pathTitleContainer {
-  margin-top: 28rem;
+  margin-top: clamp(15rem, 28vw, 28rem);
   position: relative;
 }
 
 .pathTextTitle {
   color: #FFF;
   font-family: Urbanist;
-  font-size: 12.5rem;
+  font-size: clamp(4rem, 12.5vw, 12.5rem);
   font-style: normal;
   font-weight: 700;
   line-height: normal;
@@ -154,12 +154,11 @@
   display: block;
   color: rgba(255, 255, 255, 0.20);
   text-align: center;
-  /* text-shadow: 0 8px 7.8px rgba(0, 0, 0, 0.25); */
   font-family: Urbanist;
-  font-size: 12.5rem;
+  font-size: clamp(4rem, 12.5vw, 12.5rem);
   font-style: normal;
   font-weight: 700;
-  line-height: 90%; /* 11.25rem */
+  line-height: 90%;
   text-transform: uppercase;
   background-clip: text;
   -webkit-background-clip: text;
@@ -171,13 +170,13 @@
 .pathTextSubtitle {
   color: rgba(237, 237, 237, 0.20);
   text-align: center;
-  margin-top:3rem;
+  margin-top: clamp(1.5rem, 3vw, 3rem);
   font-family: Urbanist;
-  font-size: 3rem;
+  font-size: clamp(1.5rem, 3vw, 3rem);
   font-style: normal;
   font-weight: 400;
-  line-height: 150%; /* 4.5rem */
-  margin-top: 2rem;
+  line-height: 150%;
+  margin-top: clamp(1rem, 2vw, 2rem);
 }
 
 .cubeContainer {
@@ -185,8 +184,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 27.5rem;
-  height: 27.5rem;
+  width: clamp(20rem, 27.5vw, 27.5rem);
+  height: clamp(20rem, 27.5vw, 27.5rem);
   pointer-events: none;
   z-index: 1;
 }
