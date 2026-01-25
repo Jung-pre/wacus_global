@@ -44,6 +44,16 @@ export default function CardFlipSection() {
     const allCards = [card1, ...cards2to5].filter(Boolean);
 
     const ctx = gsap.context(() => {
+      // container를 pin으로 고정
+      ScrollTrigger.create({
+        id: 'cardFlipPin',
+        trigger: sectionRef.current,
+        start: () => `top ${10 * gsapVh}px`,
+        end: () => `+=${150 * gsapVh}px`,
+        pin: container,
+        // pinSpacing: true,
+      });
+
       // 초기 상태 설정
       gsap.set(container, {
         opacity: 1,
@@ -201,6 +211,12 @@ export default function CardFlipSection() {
 
     return () => {
       ctx.revert();
+      // pin ScrollTrigger 정리
+      ScrollTrigger.getAll().forEach((trigger) => {
+        if (trigger.vars?.id === 'cardFlipPin') {
+          trigger.kill();
+        }
+      });
     };
   }, []);
 

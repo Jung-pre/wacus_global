@@ -3,6 +3,8 @@
   background: black;
   position: relative;
   background: #131313;
+  /* 이중 스크롤 방지: overflow 설정하지 않음 */
+  width: 100%;
 }
 
 .backgroundImage {

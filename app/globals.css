@@ -17,12 +17,15 @@ html {
   /* 1920px 기준 1rem = 16px (60px = 3.75rem) */
   /* vw 기반으로 선형 스케일, 모바일/대형 화면에서 안전한 범위로 클램프 */
   font-size: clamp(12px, 0.833vw, 18px);
+  /* 이중 스크롤 방지: 가로 스크롤만 방지 */
+  overflow-x: hidden;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-urbanist), var(--font-noto-sans-kr), sans-serif;
+  /* 이중 스크롤 방지: 가로 스크롤만 방지 */
   overflow-x: hidden;
 }
 

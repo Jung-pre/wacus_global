@@ -167,48 +167,61 @@ export default function PortfolioRing({
   useEffect(() => {
     if (!materialRef.current || !scrollTriggerRef?.current) return;
 
-    let ctx: gsap.Context | null = null;
-    let timeoutId: NodeJS.Timeout | null = null;
+    // 기존 ScrollTrigger 제거 (포트폴리오 띠 관련만)
+    ScrollTrigger.getAll().forEach(trigger => {
+      if (trigger.vars.trigger === scrollTriggerRef.current && 
+          trigger.vars.id === 'portfolioRingOpacity') {
+        trigger.kill();
+      }
+    });
 
-    const checkAndSetupScroll = () => {
+    // 초기 opacity 설정
+    if (hasAnimatedRef.current) {
       const scrollY = window.scrollY || window.pageYOffset;
-      
-      if (!hasAnimatedRef.current && scrollY === 0) {
-        timeoutId = setTimeout(checkAndSetupScroll, 100);
-        return;
+      const hasScrolledPast100vh = scrollY >= window.innerHeight;
+      if (materialRef.current) {
+        materialRef.current.opacity = hasScrolledPast100vh ? 0 : 1;
       }
-
-      if (materialRef.current && !hasAnimatedRef.current && scrollY === 0) {
-        materialRef.current.opacity = 0;
-      }
-
-      ctx = gsap.context(() => {
-        gsap.fromTo(materialRef.current, 
-          { opacity: 1 },
-          {
-            opacity: 0,
-            scrollTrigger: {
-              trigger: scrollTriggerRef.current,
-              start: 'top top',
-              end: () => `+=${50 * gsapVh}`,
-              scrub: true,
-              invalidateOnRefresh: true,
-            },
-          }
-        );
-      }, materialRef);
-    };
-
-    // 초기 스크롤 위치 확인은 한 번만 실행
-    if (hasAnimatedRef.current || window.scrollY !== 0) {
-      checkAndSetupScroll();
-    } else {
-      timeoutId = setTimeout(checkAndSetupScroll, 100);
     }
 
+    // ScrollTrigger 설정 - 확실하게 사라지도록
+    const scrollTrigger = ScrollTrigger.create({
+      id: 'portfolioRingOpacity', // 고유 ID로 다른 애니메이션과 구분
+      trigger: scrollTriggerRef.current,
+      start: 'top top',
+      end: () => `+=${50 * gsapVh}`,
+      scrub: true,
+      invalidateOnRefresh: true,
+      onUpdate: (self) => {
+        if (materialRef.current) {
+          // 스크롤 진행도에 따라 opacity 조정 (1 -> 0)
+          const progress = self.progress;
+          materialRef.current.opacity = Math.max(0, 1 - progress);
+        }
+      },
+      onLeave: () => {
+        // 섹션을 완전히 벗어나면 확실히 opacity 0
+        if (materialRef.current) {
+          materialRef.current.opacity = 0;
+        }
+      },
+      onEnterBack: () => {
+        // 다시 들어올 때 opacity 복원
+        if (materialRef.current) {
+          const scrollY = window.scrollY || window.pageYOffset;
+          const hasScrolledPast100vh = scrollY >= window.innerHeight;
+          if (!hasScrolledPast100vh) {
+            materialRef.current.opacity = 1;
+          }
+        }
+      },
+    });
+
     return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      if (ctx) ctx.revert();
+      // cleanup 시 해당 ScrollTrigger만 제거
+      if (scrollTrigger) {
+        scrollTrigger.kill();
+      }
     };
   }, [scrollTriggerRef, combinedTexture]);
 

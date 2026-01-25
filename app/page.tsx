@@ -27,6 +27,7 @@ export default function Home() {
   const gsapVh = useMemo(() => (typeof window !== 'undefined' ? window.innerHeight / 100 : 0), []);
   const mainRef = useRef<HTMLElement>(null);
   const heroSectionRef = useRef<HTMLElement>(null);
+  const threeSceneRef = useRef<HTMLDivElement>(null);
   const backgroundImageRef = useRef<HTMLDivElement>(null);
   const navigationRef = useRef<HTMLElement>(null);
   const [globeRotation, setGlobeRotation] = useState<[number, number, number]>([0.13, 0, 0]);
@@ -61,12 +62,25 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!backgroundImageRef.current) return;
+    if (!backgroundImageRef.current || !heroSectionRef.current) return;
 
     const backgroundImage = backgroundImageRef.current;
+    const heroSection = heroSectionRef.current;
+
+    // ThreeScene container를 pin으로 고정 (히어로 섹션이 끝날 때까지)
+    if (threeSceneRef.current) {
+      ScrollTrigger.create({
+        id: 'threeScenePin',
+        trigger: heroSection,
+        start: 'top top',
+        end: () => `+=${200 * gsapVh}px`,
+        pin: threeSceneRef.current,
+        pinSpacing: true,
+      });
+    }
 
     const st = ScrollTrigger.create({
-      trigger: heroSectionRef.current,
+      trigger: heroSection,
       start: () => `top -${160 * gsapVh}px`,
       end: () => `+=${40 * gsapVh}px`,
       scrub: true,
@@ -76,7 +90,14 @@ export default function Home() {
       },
     });
 
-    return () => st?.kill();
+    return () => {
+      st?.kill();
+      ScrollTrigger.getAll().forEach((trigger) => {
+        if (trigger.vars?.id === 'threeScenePin') {
+          trigger.kill();
+        }
+      });
+    };
   }, [gsapVh]);
   
   return (
@@ -94,7 +115,7 @@ export default function Home() {
       <Navigation ref={navigationRef} />
       
       <section ref={heroSectionRef} className={styles.heroSection}>
-        <ThreeScene>
+        <ThreeScene ref={threeSceneRef}>
           <Hero3D 
             scrollTriggerRef={heroSectionRef} 
             rotation={globeRotation}

@@ -5,6 +5,10 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import styles from './SlotSection.module.css';
 
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
 // W를 만들기 위한 SVG 데이터
 const slotSVGs = [
   // 첫 번째 컬럼: 왼쪽 부분
@@ -27,165 +31,443 @@ const slotSVGs = [
 
 export default function SlotSection() {
   const gsapVh = useMemo(() => (typeof window !== 'undefined' ? window.innerHeight / 100 : 0), []);
+
   const sectionRef = useRef<HTMLElement>(null);
   const slotContainerRef = useRef<HTMLDivElement>(null);
-  // 각 컬럼의 1번 슬롯과 2번 슬롯 ref
-  const slot1_1Ref = useRef<HTMLDivElement>(null); // 1번 컬럼의 1번 SVG 슬롯
-  const slot1_2Ref = useRef<HTMLDivElement>(null); // 1번 컬럼의 2번 SVG 슬롯
-  const slot2_1Ref = useRef<HTMLDivElement>(null); // 2번 컬럼의 1번 SVG 슬롯
-  const slot2_2Ref = useRef<HTMLDivElement>(null); // 2번 컬럼의 2번 SVG 슬롯
-  const slot3_1Ref = useRef<HTMLDivElement>(null); // 3번 컬럼의 1번 SVG 슬롯
-  const slot3_2Ref = useRef<HTMLDivElement>(null); // 3번 컬럼의 2번 SVG 슬롯
-  // 컬럼 ref
+  const slot1_1Ref = useRef<HTMLDivElement>(null);
+  const slot1_2Ref = useRef<HTMLDivElement>(null);
+  const slot2_1Ref = useRef<HTMLDivElement>(null);
+  const slot2_2Ref = useRef<HTMLDivElement>(null);
+  const slot3_1Ref = useRef<HTMLDivElement>(null);
+  const slot3_2Ref = useRef<HTMLDivElement>(null);
   const column1Ref = useRef<HTMLDivElement>(null);
   const column2Ref = useRef<HTMLDivElement>(null);
   const column3Ref = useRef<HTMLDivElement>(null);
-  // 최종 SVG ref
   const finalSVGRef = useRef<HTMLDivElement>(null);
+  const finalPathRef = useRef<SVGPathElement>(null);
 
   useEffect(() => {
-    if (!slot1_1Ref.current || !slot1_2Ref.current || 
-        !slot2_1Ref.current || !slot2_2Ref.current ||
-        !slot3_1Ref.current || !slot3_2Ref.current ||
-        !sectionRef.current || !column1Ref.current ||
-        !column2Ref.current || !column3Ref.current ||
-        !slotContainerRef.current ||
-        !finalSVGRef.current) return;
+    if (!sectionRef.current || !slot1_1Ref.current || !slot1_2Ref.current ||
+        !slot2_1Ref.current || !slot2_2Ref.current || !slot3_1Ref.current ||
+        !slot3_2Ref.current || !finalSVGRef.current || !finalPathRef.current) return;
 
-    // 실제 렌더링된 아이템의 높이를 가져옴
-    const firstItem1 = slot1_1Ref.current.querySelector(`.${styles.slotItem}`) as HTMLElement;
-    const firstItem2 = slot1_2Ref.current.querySelector(`.${styles.slotItem}`) as HTMLElement;
+    if (typeof window === 'undefined' || !gsapVh) return;
+
+    // 초기 상태 설정: 모든 슬롯을 translateY(-100rem)로 설정
+    const remValue = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const initialY = -100 * remValue; // -100rem을 px로 변환
     
-    if (!firstItem1 || !firstItem2) return;
-
-    const itemHeight = firstItem1.offsetHeight; // 실제 렌더링된 높이
-    const totalItems1 = 15; // 1번 컬럼 아이템 수
-    const totalItems2 = 15; // 2번, 3번 컬럼 아이템 수
+    // 2번째 슬롯 아이템의 세로 중앙이 브라우저 세로 중앙과 일치하도록 targetY 계산
+    const calculateTargetY = () => {
+      if (typeof window === 'undefined' || !slotContainerRef.current) return 0;
+      
+      const remValue = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const slotItemHeight = 17.7 * remValue; // 17.7rem을 px로
+      const slotGap = 4.4 * remValue; // 4.4rem을 px로
+      
+      // 브라우저 세로 중앙 (viewport 중앙)
+      const browserCenterY = window.innerHeight / 2;
+      
+      // singleSlot 내에서 2번째 아이템의 중앙 위치 (singleSlot의 top 기준)
+      // 첫 번째 아이템 높이 + gap + 두 번째 아이템 높이의 절반
+      const secondItemCenterInSlot = slotItemHeight + slotGap + (slotItemHeight / 2);
+      
+      // 사용자 제안 방식: browserCenterY - (slotItemHeight + (slotItemHeight/2) + slotGap)
+      // slotContainer가 viewport 중앙에 위치한다고 가정하고 직접 계산
+      const targetY = browserCenterY - (slotItemHeight + (slotItemHeight / 2) + slotGap);
+      
+      console.log('2번째 아이템 중앙 계산 (브라우저 기준):', {
+        innerHeight: window.innerHeight,
+        browserCenterY,
+        slotItemHeight,
+        slotGap,
+        secondItemCenterInSlot: slotItemHeight + slotGap + (slotItemHeight / 2),
+        계산결과: browserCenterY - (slotItemHeight + (slotItemHeight / 2) + slotGap),
+        targetY,
+        계산식: `browserCenterY - (slotItemHeight + (slotItemHeight/2) + slotGap) = ${browserCenterY} - (${slotItemHeight} + ${slotItemHeight / 2} + ${slotGap}) = ${targetY}`
+      });
+      
+      return targetY;
+    };
     
-    // 컨테이너 높이 가져오기 (빈 화면 계산용)
-    const container = sectionRef.current.querySelector(`.${styles.slotContainer}`) as HTMLElement;
-    const containerHeight = container ? container.offsetHeight : 0;
+    let targetY = calculateTargetY();
     
-    // 1번 컬럼 설정
-    const totalHeight1 = itemHeight * totalItems1;
-    slot1_1Ref.current.style.height = `${totalHeight1}px`;
-    slot1_2Ref.current.style.height = `${totalHeight1}px`;
+    gsap.set([slot1_1Ref.current, slot1_2Ref.current, slot2_1Ref.current, slot2_2Ref.current, slot3_1Ref.current, slot3_2Ref.current], {
+      y: initialY,
+      opacity: 0.4,
+    });
 
-    // 2번 컬럼 설정
-    const totalHeight2 = itemHeight * totalItems2;
-    slot2_1Ref.current.style.height = `${totalHeight2}px`;
-    slot2_2Ref.current.style.height = `${totalHeight2}px`;
-
-    // 3번 컬럼 설정
-    slot3_1Ref.current.style.height = `${totalHeight2}px`;
-    slot3_2Ref.current.style.height = `${totalHeight2}px`;
-
-    // 모든 슬롯을 0까지 당기기 (첫 번째 아이템이 보이도록)
-    const targetOffset = 0; // 최종 위치는 0
-    // 여러 바퀴를 돌기 위해 시작 위치를 더 위로 설정 (10바퀴 정도)
-    const spinRounds1 = 10; // 1번 컬럼 회전 횟수
-    const spinRounds2 = 12; // 2번, 3번 컬럼 회전 횟수
-    const startOffset1 = -itemHeight * spinRounds1; // 여러 바퀴를 돌기 위한 시작 위치
-    const startOffset2 = -itemHeight * spinRounds2; // 여러 바퀴를 돌기 위한 시작 위치
-
-    // 초기 위치 설정
-    gsap.set(slot1_1Ref.current, { y: startOffset1 });
-    gsap.set(slot1_2Ref.current, { y: startOffset1 });
-    gsap.set(slot2_1Ref.current, { y: startOffset2 });
-    gsap.set(slot2_2Ref.current, { y: startOffset2 });
-    gsap.set(slot3_1Ref.current, { y: startOffset2 });
-    gsap.set(slot3_2Ref.current, { y: startOffset2 });
-    gsap.set(finalSVGRef.current, { opacity: 0, scale: 1, transformOrigin: '50% 24%' });
-
-    // 2번째 아이템을 제외한 모든 아이템 수집
-    const allSlots = [
-      slot1_1Ref.current,
-      slot1_2Ref.current,
-      slot2_1Ref.current,
-      slot2_2Ref.current,
-      slot3_1Ref.current,
-      slot3_2Ref.current,
-    ];
-
-    const nonSecondItems: HTMLElement[] = [];
-    allSlots.forEach((slot) => {
-      if (!slot) return;
-      const items = slot.querySelectorAll(`.${styles.slotItem}`);
-      items.forEach((item, index) => {
-        // 2번째 아이템이 아니고, 화면에 보이는 아이템(0, 1, 2번)만 opacity 적용
-        if (index !== 1 && index < 3) {
-          nonSecondItems.push(item as HTMLElement);
+    // 슬롯 애니메이션 함수
+    const createSlotAnimations = (targetYValue: number) => {
+      // 기존 ScrollTrigger 제거
+      ScrollTrigger.getAll().forEach(trigger => {
+        if (trigger.vars?.trigger === sectionRef.current && 
+            ['slot1_1', 'slot1_2', 'slot2_1', 'slot2_2', 'slot3_1', 'slot3_2'].includes(trigger.vars.id as string)) {
+          trigger.kill();
         }
       });
-    });
 
-    // ScrollTrigger 설정
-    gsap.registerPlugin(ScrollTrigger);
-    const finalPath = finalSVGRef.current.querySelector('path');
+      // slot1_1
+      gsap.to(slot1_1Ref.current, {
+        y: targetYValue,
+        opacity: 1,
+        ease: 'none',
+        scrollTrigger: {
+          id: 'slot1_1',
+          trigger: sectionRef.current,
+          start: `top+=${10 * gsapVh}px top`,
+          end: `+=${120 * gsapVh}px`,
+          scrub: true,
+          invalidateOnRefresh: true, // 리사이즈 시 재계산
+        },
+      });
 
-    const tl = gsap.timeline({
-      scrollTrigger: {
+      // slot1_2
+      gsap.to(slot1_2Ref.current, {
+        y: targetYValue,
+        opacity: 1,
+        ease: 'none',
+        scrollTrigger: {
+          id: 'slot1_2',
+          trigger: sectionRef.current,
+          start: `top+=${15 * gsapVh}px top`,
+          end: `+=${120 * gsapVh}px`,
+          scrub: true,
+          invalidateOnRefresh: true, // 리사이즈 시 재계산
+        },
+      });
+
+      // slot2_1
+      gsap.to(slot2_1Ref.current, {
+        y: targetYValue,
+        opacity: 1,
+        ease: 'none',
+        scrollTrigger: {
+          id: 'slot2_1',
+          trigger: sectionRef.current,
+          start: `top+=${50 * gsapVh}px top`,
+          end: `+=${120 * gsapVh}px`,
+          scrub: true,
+          invalidateOnRefresh: true, // 리사이즈 시 재계산
+        },
+      });
+
+      // slot2_2
+      gsap.to(slot2_2Ref.current, {
+        y: targetYValue,
+        opacity: 1,
+        ease: 'none',
+        scrollTrigger: {
+          id: 'slot2_2',
+          trigger: sectionRef.current,
+          start: `top+=${80 * gsapVh}px top`,
+          end: `+=${120 * gsapVh}px`,
+          scrub: true,
+          invalidateOnRefresh: true, // 리사이즈 시 재계산
+        },
+      });
+
+      // slot3_1
+      gsap.to(slot3_1Ref.current, {
+        y: targetYValue,
+        opacity: 1,
+        ease: 'none',
+        scrollTrigger: {
+          id: 'slot3_1',
+          trigger: sectionRef.current,
+          start: `top+=${10 * gsapVh}px top`,
+          end: `+=${120 * gsapVh}px`,
+          scrub: true,
+          invalidateOnRefresh: true, // 리사이즈 시 재계산
+        },
+      });
+
+      // slot3_2
+      gsap.to(slot3_2Ref.current, {
+        y: targetYValue,
+        opacity: 1,
+        ease: 'none',
+        scrollTrigger: {
+          id: 'slot3_2',
+          trigger: sectionRef.current,
+          start: `top+=${50 * gsapVh}px top`,
+          end: `+=${120 * gsapVh}px`,
+          scrub: true,
+          invalidateOnRefresh: true, // 리사이즈 시 재계산
+        },
+      });
+    };
+    
+    // 초기 애니메이션 생성
+    createSlotAnimations(targetY);
+    
+    // slotSectionInner를 pin으로 고정
+    const slotSectionInnerElement = sectionRef.current?.querySelector(`.${styles.slotSectionInner}`) as HTMLElement;
+    if (slotSectionInnerElement && sectionRef.current) {
+      ScrollTrigger.create({
+        id: 'slotSectionInnerPin',
         trigger: sectionRef.current,
         start: 'top top',
-        end: () => `+=${250 * gsapVh}`,
-        scrub: 2, // 성능 최적화: 업데이트 빈도 감소 (1 -> 2)
-        invalidateOnRefresh: true,
-      },
-    });
+        end: () => `+=${600 * gsapVh}px`,
+        pin: slotSectionInnerElement,
+        pinSpacing: true,
+      });
+    }
+    
+    // 디버깅용 가이드라인 생성
+    const createDebugLines = () => {
+      // 기존 디버깅 라인 제거
+      const existingRedLine = document.getElementById('debug-red-line');
+      const existingWhiteLines = document.querySelectorAll('.debug-white-line');
+      const existingBlueLine = document.getElementById('debug-blue-line');
+      if (existingRedLine) existingRedLine.remove();
+      existingWhiteLines.forEach(line => line.remove());
+      if (existingBlueLine) existingBlueLine.remove();
 
-    // 모든 모션을 타임라인에 추가 (기존 순서 유지)
-    // 1. 슬롯들이 위로 올라갔다가 0으로 내려옴 (각각 다른 delay)
-    // force3D: true로 하드웨어 가속 강제
-    tl.to(slot1_1Ref.current, { y: startOffset1, duration: 0.1, ease: 'none', force3D: true }, 0)
-      .to(slot1_1Ref.current, { y: targetOffset, duration: 3.5, ease: 'power2.out', force3D: true }, 0.1)
-      .to(slot1_2Ref.current, { y: startOffset1, duration: 0.1, ease: 'none', force3D: true }, 0.15)
-      .to(slot1_2Ref.current, { y: targetOffset, duration: 3.7, ease: 'power2.out', force3D: true }, 0.25)
-      .to(slot2_1Ref.current, { y: startOffset2, duration: 0.1, ease: 'none', force3D: true }, 0.3)
-      .to(slot2_1Ref.current, { y: targetOffset, duration: 3.5, ease: 'power2.out', force3D: true }, 0.4)
-      .to(slot2_2Ref.current, { y: startOffset2, duration: 0.1, ease: 'none', force3D: true }, 0.45)
-      .to(slot2_2Ref.current, { y: targetOffset, duration: 3.7, ease: 'power2.out', force3D: true }, 0.55)
-      .to(slot3_1Ref.current, { y: startOffset2, duration: 0.1, ease: 'none', force3D: true }, 0.6)
-      .to(slot3_1Ref.current, { y: targetOffset, duration: 3.5, ease: 'power2.out', force3D: true }, 0.7)
-      .to(slot3_2Ref.current, { y: startOffset2, duration: 0.1, ease: 'none', force3D: true }, 0.75)
-      .to(slot3_2Ref.current, { y: targetOffset, duration: 3.7, ease: 'power2.out', force3D: true }, 0.85)
-      // 2. nonSecondItems opacity 0 (슬롯 애니메이션 완료 후)
-      .to(nonSecondItems, {
+      // 브라우저 중심부 빨간선
+      const redLine = document.createElement('div');
+      redLine.id = 'debug-red-line';
+      redLine.style.position = 'fixed';
+      redLine.style.top = '50%';
+      redLine.style.left = '0';
+      redLine.style.width = '100%';
+      redLine.style.height = '2px';
+      redLine.style.backgroundColor = 'red';
+      redLine.style.zIndex = '9999';
+      redLine.style.pointerEvents = 'none';
+      document.body.appendChild(redLine);
+
+      // 각 singleSlot의 2번째 아이템 중앙에 흰색선 생성
+      const slots = [slot1_1Ref.current, slot1_2Ref.current, slot2_1Ref.current, slot2_2Ref.current, slot3_1Ref.current, slot3_2Ref.current];
+      slots.forEach((slot, index) => {
+        if (!slot || slot.children.length < 2) return;
+        
+        const secondItem = slot.children[1] as HTMLElement;
+        if (!secondItem) return;
+
+        const secondItemRect = secondItem.getBoundingClientRect();
+        const secondItemCenterY = secondItemRect.top + (secondItemRect.height / 2);
+
+        const whiteLine = document.createElement('div');
+        whiteLine.className = 'debug-white-line';
+        whiteLine.style.position = 'fixed';
+        whiteLine.style.top = `${secondItemCenterY}px`;
+        whiteLine.style.left = '0';
+        whiteLine.style.width = '100%';
+        whiteLine.style.height = '2px';
+        whiteLine.style.backgroundColor = 'white';
+        whiteLine.style.zIndex = '9998';
+        whiteLine.style.pointerEvents = 'none';
+        whiteLine.style.opacity = '0.8';
+        document.body.appendChild(whiteLine);
+      });
+
+      // finalSVG의 세로 중앙에 파란선 생성
+      if (finalSVGRef.current) {
+        const finalSVGRect = finalSVGRef.current.getBoundingClientRect();
+        const finalSVGCenterY = finalSVGRect.top + (finalSVGRect.height / 2);
+
+        const blueLine = document.createElement('div');
+        blueLine.id = 'debug-blue-line';
+        blueLine.style.position = 'fixed';
+        blueLine.style.top = `${finalSVGCenterY}px`;
+        blueLine.style.left = '0';
+        blueLine.style.width = '100%';
+        blueLine.style.height = '2px';
+        blueLine.style.backgroundColor = 'blue';
+        blueLine.style.zIndex = '9997';
+        blueLine.style.pointerEvents = 'none';
+        blueLine.style.opacity = '0.8';
+        document.body.appendChild(blueLine);
+      }
+    };
+
+    // 리사이즈 이벤트 처리
+    let currentTargetY = targetY;
+    const handleResize = () => {
+      const newTargetY = calculateTargetY();
+      if (Math.abs(newTargetY - currentTargetY) > 1) { // 1px 이상 차이날 때만 업데이트
+        currentTargetY = newTargetY;
+        // 기존 ScrollTrigger 제거 후 재생성
+        ScrollTrigger.getAll().forEach(trigger => {
+          if (trigger.vars?.trigger === sectionRef.current && 
+              ['slot1_1', 'slot1_2', 'slot2_1', 'slot2_2', 'slot3_1', 'slot3_2'].includes(trigger.vars.id as string)) {
+            trigger.kill();
+          }
+        });
+        // 애니메이션 재생성
+        createSlotAnimations(currentTargetY);
+        ScrollTrigger.refresh();
+      }
+      // 디버깅 라인 업데이트 (약간의 지연 후)
+      setTimeout(createDebugLines, 100);
+    };
+    
+    window.addEventListener('resize', handleResize);
+
+    // 초기 라인 생성
+    createDebugLines();
+
+    // 스크롤 시에도 라인 업데이트 (애니메이션으로 위치가 변하므로)
+    const updateDebugLinesOnScroll = () => {
+      requestAnimationFrame(createDebugLines);
+    };
+    window.addEventListener('scroll', updateDebugLinesOnScroll, { passive: true });
+
+    // finalSVG path 그리기 애니메이션
+    const path = finalPathRef.current;
+    if (path && finalSVGRef.current) {
+      const pathLength = path.getTotalLength();
+      
+      // 초기 상태 설정: finalSVG는 opacity 0, path는 보이지 않도록
+      gsap.set(finalSVGRef.current, {
         opacity: 0,
-        duration: 0.5,
-        ease: 'power2.out',
-        stagger: 0.02,
-        force3D: true, // 하드웨어 가속
-      }, 4.6)
-      // 3. column1, column3 opacity 0 (delay 0.5)
-      .to(column1Ref.current, { opacity: 0, duration: 0.5, ease: 'power2.out', force3D: true }, 5.1)
-      .to(column3Ref.current, { opacity: 0, duration: 0.5, ease: 'power2.out', force3D: true }, 5.1)
-      // 4. column2 transform-origin 설정 및 확대
-      .set(column2Ref.current, { transformOrigin: '50% 9.5%' }, 5.1)
-      .to(column2Ref.current, {
-        scaleX: 2.16,
-        scaleY: 2.17,
-        duration: 1,
-        ease: 'power2.out',
-        force3D: true, // 하드웨어 가속
-      }, 5.6)
-      // 5. finalSVG opacity 1 + slotContainer opacity 0
-      .to(finalSVGRef.current, { opacity: 1, duration: 0.5, ease: 'power2.out', force3D: true }, 6.6)
-      .to(slotContainerRef.current, { opacity: 0, duration: 0.5, ease: 'power2.out', force3D: true }, 6.6)
-      // 6. finalPath fill 변경
-      .to(finalPath, {
-        attr: { fill: '#8840F4' },
-        duration: 0.6,
-        ease: 'power2.out',
-      }, 7.1)
-      // 7. finalSVG transform-origin 변경 및 scale 10
-      .set(finalSVGRef.current, { transformOrigin: '50% 24%' }, 7.1)
-      .to(finalSVGRef.current, { scale: 10, duration: 0.8, ease: 'power2.inOut', force3D: true }, 7.1)
-      // 8. column2 opacity 0
-      .to(column2Ref.current, { opacity: 0, duration: 0.3, ease: 'power2.out', force3D: true }, 7.9);
+      });
+      
+      gsap.set(path, {
+        strokeDasharray: pathLength,
+        strokeDashoffset: pathLength,
+      });
+
+      // path 그리기 애니메이션 설정
+      const pathDrawStart = 220; // 시작 지점 (vh 단위) - 20vh 앞당김
+      const pathDrawDuration = 100; // 그리기 지속 시간 (vh 단위)
+      const pathFillDuration = 80; // 색상 채우기 지속 시간 (vh 단위)
+      const totalAnimationVh = pathDrawStart + pathDrawDuration + pathFillDuration; // 400vh
+
+      // finalSVG가 나타나는 애니메이션 (path 그리기 시작과 동시에)
+      gsap.to(finalSVGRef.current, {
+        opacity: 1,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: `top+=${pathDrawStart * gsapVh}px top`,
+          end: `+=${10 * gsapVh}px`, // 10vh 동안 나타남
+          scrub: true,
+          invalidateOnRefresh: true, // 리사이즈 시 재계산
+        },
+      });
+
+      // 스크롤에 따라 path 그리기
+      gsap.to(path, {
+        strokeDashoffset: 0,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: `top+=${pathDrawStart * gsapVh}px top`, // 시작 지점 조정 가능
+          end: `+=${pathDrawDuration * gsapVh}px`, // 지속 시간 조정 가능
+          scrub: true,
+          invalidateOnRefresh: true, // 리사이즈 시 재계산
+        },
+      });
+
+      // path 그리기가 끝난 후 색상 채우기 애니메이션
+      const pathFillStart = pathDrawStart + pathDrawDuration; // path 그리기가 끝나는 시점
+      let fillCompleted = false;
+      gsap.to(path, {
+        attr: {
+          fill: '#8840F4',
+        },
+        ease: 'none',
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: `top+=${pathFillStart * gsapVh}px top`, // path 그리기 완료 후 시작
+          end: () => {
+            // section의 실제 높이를 확인하여 end 지점 보장
+            const sectionHeight = sectionRef.current?.offsetHeight || 0;
+            const calculatedEnd = pathFillStart * gsapVh + pathFillDuration * gsapVh;
+            // section 높이가 충분하지 않으면 section 끝까지 사용
+            return sectionHeight > calculatedEnd ? `+=${pathFillDuration * gsapVh}px` : `bottom bottom`;
+          },
+          scrub: true,
+          invalidateOnRefresh: true, // 리사이즈 시 재계산
+          onUpdate: (self) => {
+            if (self.progress >= 1 && !fillCompleted) {
+              fillCompleted = true;
+              console.log('색상 채우기 완료');
+            }
+          },
+        },
+      });
+
+
+      // 색상이 다 채워진 후 column2Ref opacity 0으로
+      if (column2Ref.current) {
+        gsap.to(column2Ref.current, {
+          opacity: 0,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: `top+=${pathFillStart * gsapVh}px top`, // 색상 채우기 완료 후 시작
+            end: `+=${50 * gsapVh}px`, // 10vh 동안
+            scrub: true,
+            invalidateOnRefresh: true, // 리사이즈 시 재계산
+          },
+        });
+      }
+    }
+
+    // column1Ref opacity 애니메이션: 100vh 이후부터 40vh 동안 opacity 0으로
+    if (column1Ref.current) {
+      gsap.to(column1Ref.current, {
+        opacity: 0,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: `top+=${160 * gsapVh}px top`, // -20vh
+          end: `+=${80 * gsapVh}px`,
+          scrub: true,
+          invalidateOnRefresh: true, // 리사이즈 시 재계산
+        },
+      });
+    }
+
+    // slot2_2의 첫 번째 아이템도 같은 타이밍에 opacity 0으로
+    if (slot2_2Ref.current && slot2_2Ref.current.children.length > 0) {
+      const slot2_2FirstItem = slot2_2Ref.current.children[0] as HTMLElement;
+      if (slot2_2FirstItem) {
+        gsap.to(slot2_2FirstItem, {
+          opacity: 0,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: `top+=${160 * gsapVh}px top`, // -20vh
+            end: `+=${80 * gsapVh}px`,
+            scrub: true,
+            invalidateOnRefresh: true, // 리사이즈 시 재계산
+          },
+        });
+      }
+    }
+    if (column3Ref.current) {
+      gsap.to(column3Ref.current, {
+        opacity: 0,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: `top+=${160 * gsapVh}px top`, // -20vh
+          end: `+=${80 * gsapVh}px`,
+          scrub: true,
+          invalidateOnRefresh: true, // 리사이즈 시 재계산
+        },
+      });
+    }
 
     return () => {
-      tl.kill();
-      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', updateDebugLinesOnScroll);
+      // 디버깅 라인 제거
+      const existingRedLine = document.getElementById('debug-red-line');
+      const existingWhiteLines = document.querySelectorAll('.debug-white-line');
+      const existingBlueLine = document.getElementById('debug-blue-line');
+      if (existingRedLine) existingRedLine.remove();
+      existingWhiteLines.forEach(line => line.remove());
+      if (existingBlueLine) existingBlueLine.remove();
+      ScrollTrigger.getAll().forEach((trigger) => {
+        if (trigger.vars?.trigger === sectionRef.current || trigger.vars?.id === 'slotSectionInnerPin') {
+          trigger.kill();
+        }
+      });
     };
   }, [gsapVh]);
 
@@ -195,18 +477,8 @@ export default function SlotSection() {
         <div ref={slotContainerRef} className={styles.slotContainer}>
           {/* 1번 컬럼: 1번 SVG 슬롯과 2번 SVG 슬롯이 가로로 나란히 */}
           <div ref={column1Ref} className={styles.slotColumn}>
-          <div ref={slot1_1Ref} className={styles.singleSlot}>
-            {Array.from({ length: 15 }, (_, i) => {
-              // 기본 색상: #141414
-              // 정답(2번째, i === 1)만: #2C2C2C
-              // 중간중간에 #0B0B0B (빠진 것처럼)
-              let fillColor = '#141414'; // 기본 색상
-              if (i === 1) {
-                fillColor = '#2C2C2C'; // 정답만
-              } else if (i > 2 && (i % 2 === 0 || i % 5 === 0)) {
-                fillColor = '#0B0B0B'; // 중간중간 빠진 것처럼 (4번부터)
-              }
-              return (
+            <div ref={slot1_1Ref} className={`${styles.singleSlot} ${styles.slot1_1}`}>
+              {Array.from({ length: 10 }, (_, i) => (
                 <div key={i} className={styles.slotItem}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -215,24 +487,13 @@ export default function SlotSection() {
                     className={styles.slotSVG}
                     shapeRendering="optimizeSpeed"
                   >
-                    <path d={slotSVGs[0].path} fill={fillColor} />
+                    <path d={slotSVGs[0].path} />
                   </svg>
                 </div>
-              );
-            })}
-          </div>
-          <div ref={slot1_2Ref} className={styles.singleSlot}>
-            {Array.from({ length: 15 }, (_, i) => {
-              // 기본 색상: #141414
-              // 정답(2번째, i === 1)만: #2C2C2C
-              // 중간중간에 #0B0B0B (빠진 것처럼)
-              let fillColor = '#141414'; // 기본 색상
-              if (i === 1) {
-                fillColor = '#2C2C2C'; // 정답만
-              } else if (i > 2 && (i % 2 === 0 || i % 5 === 0)) {
-                fillColor = '#0B0B0B'; // 중간중간 빠진 것처럼 (4번부터)
-              }
-              return (
+              ))}
+            </div>
+            <div ref={slot1_2Ref} className={`${styles.singleSlot} ${styles.slot1_2}`}>
+              {Array.from({ length: 10 }, (_, i) => (
                 <div key={i} className={styles.slotItem}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -241,27 +502,16 @@ export default function SlotSection() {
                     className={styles.slotSVG}
                     shapeRendering="optimizeSpeed"
                   >
-                    <path d={slotSVGs[1].path} fill={fillColor} />
+                    <path d={slotSVGs[1].path} />
                   </svg>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
-        </div>
-        {/* 2번 컬럼 */}
-        <div ref={column2Ref} className={styles.slotColumn}>
-          <div ref={slot2_1Ref} className={styles.singleSlot}>
-            {Array.from({ length: 15 }, (_, i) => {
-              // 기본 색상: #141414
-              // 정답(2번째, i === 1)만: #2C2C2C
-              // 중간중간에 #0B0B0B (빠진 것처럼)
-              let fillColor = '#141414'; // 기본 색상
-              if (i === 1) {
-                fillColor = '#2C2C2C'; // 정답만
-              } else if (i > 2 && (i % 2 === 0 || i % 5 === 0)) {
-                fillColor = '#0B0B0B'; // 중간중간 빠진 것처럼 (4번부터)
-              }
-              return (
+          {/* 2번 컬럼 */}
+          <div ref={column2Ref} className={styles.slotColumn}>
+            <div ref={slot2_1Ref} className={`${styles.singleSlot} ${styles.slot2_1}`}>
+              {Array.from({ length: 10 }, (_, i) => (
                 <div key={i} className={styles.slotItem}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -270,24 +520,13 @@ export default function SlotSection() {
                     className={styles.slotSVG}
                     shapeRendering="optimizeSpeed"
                   >
-                    <path d={slotSVGs[0].path} fill={fillColor} />
+                    <path d={slotSVGs[0].path} />
                   </svg>
                 </div>
-              );
-            })}
-          </div>
-          <div ref={slot2_2Ref} className={styles.singleSlot}>
-            {Array.from({ length: 15 }, (_, i) => {
-              // 기본 색상: #141414
-              // 정답(2번째, i === 1)만: #2C2C2C
-              // 중간중간에 #0B0B0B (빠진 것처럼)
-              let fillColor = '#141414'; // 기본 색상
-              if (i === 1) {
-                fillColor = '#2C2C2C'; // 정답만
-              } else if (i > 2 && (i % 2 === 0 || i % 5 === 0)) {
-                fillColor = '#0B0B0B'; // 중간중간 빠진 것처럼 (4번부터)
-              }
-              return (
+              ))}
+            </div>
+            <div ref={slot2_2Ref} className={`${styles.singleSlot} ${styles.slot2_2}`}>
+              {Array.from({ length: 10 }, (_, i) => (
                 <div key={i} className={styles.slotItem}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -296,27 +535,16 @@ export default function SlotSection() {
                     className={styles.slotSVG}
                     shapeRendering="optimizeSpeed"
                   >
-                    <path d={slotSVGs[1].path} fill={fillColor} />
+                    <path d={slotSVGs[1].path} />
                   </svg>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
-        </div>
-        {/* 3번 컬럼 */}
-        <div ref={column3Ref} className={styles.slotColumn}>
-          <div ref={slot3_1Ref} className={styles.singleSlot}>
-            {Array.from({ length: 15 }, (_, i) => {
-              // 기본 색상: #141414
-              // 정답(2번째, i === 1)만: #2C2C2C
-              // 중간중간에 #0B0B0B (빠진 것처럼)
-              let fillColor = '#141414'; // 기본 색상
-              if (i === 1) {
-                fillColor = '#2C2C2C'; // 정답만
-              } else if (i > 2 && (i % 2 === 0 || i % 5 === 0)) {
-                fillColor = '#0B0B0B'; // 중간중간 빠진 것처럼 (4번부터)
-              }
-              return (
+          {/* 3번 컬럼 */}
+          <div ref={column3Ref} className={styles.slotColumn}>
+            <div ref={slot3_1Ref} className={`${styles.singleSlot} ${styles.slot3_1}`}>
+              {Array.from({ length: 10 }, (_, i) => (
                 <div key={i} className={styles.slotItem}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -325,24 +553,13 @@ export default function SlotSection() {
                     className={styles.slotSVG}
                     shapeRendering="optimizeSpeed"
                   >
-                    <path d={slotSVGs[0].path} fill={fillColor} />
+                    <path d={slotSVGs[0].path} />
                   </svg>
                 </div>
-              );
-            })}
-          </div>
-          <div ref={slot3_2Ref} className={styles.singleSlot}>
-            {Array.from({ length: 15 }, (_, i) => {
-              // 기본 색상: #141414
-              // 정답(2번째, i === 1)만: #2C2C2C
-              // 중간중간에 #0B0B0B (빠진 것처럼)
-              let fillColor = '#141414'; // 기본 색상
-              if (i === 1) {
-                fillColor = '#2C2C2C'; // 정답만
-              } else if (i > 2 && (i % 2 === 0 || i % 5 === 0)) {
-                fillColor = '#0B0B0B'; // 중간중간 빠진 것처럼 (4번부터)
-              }
-              return (
+              ))}
+            </div>
+            <div ref={slot3_2Ref} className={`${styles.singleSlot} ${styles.slot3_2}`}>
+              {Array.from({ length: 10 }, (_, i) => (
                 <div key={i} className={styles.slotItem}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -351,18 +568,23 @@ export default function SlotSection() {
                     className={styles.slotSVG}
                     shapeRendering="optimizeSpeed"
                   >
-                    <path d={slotSVGs[1].path} fill={fillColor} />
+                    <path d={slotSVGs[1].path} />
                   </svg>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
-        </div>
         </div>
         {/* 최종 SVG */}
         <div ref={finalSVGRef} className={styles.finalSVG}>
           <svg xmlns="http://www.w3.org/2000/svg" width="978" height="597" viewBox="0 0 978 597" fill="none">
-            <path d="M190.801 1L296.633 384.381L297.607 387.91L298.562 384.376L402.171 1H586.003L690.726 386.444L691.685 389.978L692.654 386.446L798.487 1H976.611L777.61 596H596.722L489 255.352L488.042 252.322L487.092 255.354L380.323 596H200.39L1.38867 1H190.801Z" fill="#0B0B0B" stroke="#8840F4" strokeWidth="2"/>
+            <path 
+              ref={finalPathRef}
+              d="M1.38867 1H190.801L296.633 384.381L297.607 387.91L298.562 384.376L402.171 1H586.003L690.726 386.444L691.685 389.978L692.654 386.446L798.487 1H976.611L777.61 596H596.722L489 255.352L488.042 252.322L487.092 255.354L380.323 596H200.39Z" 
+              fill="none" 
+              stroke="#8840F4" 
+              strokeWidth="4"
+            />
           </svg>
         </div>
       </div>

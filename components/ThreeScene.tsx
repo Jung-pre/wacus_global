@@ -1,7 +1,7 @@
 'use client';
 
 import { Canvas } from '@react-three/fiber';
-import { Suspense } from 'react';
+import { Suspense, forwardRef } from 'react';
 import styles from './ThreeScene.module.css';
 
 interface ThreeSceneProps {
@@ -9,9 +9,9 @@ interface ThreeSceneProps {
   className?: string;
 }
 
-export default function ThreeScene({ children, className }: ThreeSceneProps) {
+const ThreeScene = forwardRef<HTMLDivElement, ThreeSceneProps>(({ children, className }, ref) => {
   return (
-    <div className={`${styles.container} ${className || ''}`}>
+    <div ref={ref} className={`${styles.container} ${className || ''}`}>
       <Canvas
         gl={{ antialias: true, alpha: true }}
         dpr={[1, 2]}
@@ -24,4 +24,8 @@ export default function ThreeScene({ children, className }: ThreeSceneProps) {
       </Canvas>
     </div>
   );
-}
+});
+
+ThreeScene.displayName = 'ThreeScene';
+
+export default ThreeScene;

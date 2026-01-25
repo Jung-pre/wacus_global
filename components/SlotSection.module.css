@@ -1,20 +1,21 @@
 .slotSection {
   width: 100%;
-  min-height: 370vh;
-  
+  height: 600vh; /* 최소 높이만 유지 */
   background: #0B0B0B;
+  position: relative;
+  overflow: hidden;
 }
 
 .slotSectionInner {
-  padding: 0 12.57rem; /* 위아래 여백 없음, 좌우만 유지 */
+  padding: 0 10.3rem;
   height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  position: sticky;
-  top: 0;
+  /* GSAP pin 사용 */
   overflow: hidden;
+  z-index: 1;
 }
 
 .slotContainer {
@@ -22,9 +23,26 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
-  height: 67rem;
+  /* height: 60rem; */
   position: relative;
   overflow: hidden;
+}
+
+/* 화면이 좁아져서 3개 컬럼이 다 안들어갈 때 2번째 컬럼만 표시 */
+@media (max-width: 60rem) {
+  .slotContainer {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+  
+  .slotColumn:first-child,
+  .slotColumn:last-child {
+    display: none;
+  }
+  
+  .slotColumn:nth-child(2) {
+    display: flex;
+  }
 }
 
 
@@ -32,48 +50,89 @@
   display: flex;
   flex-direction: row; /* 가로로 배치 */
   gap: 0;
-  width: 100%;
-  will-change: transform, opacity; /* transform과 opacity 애니메이션 최적화 */
-  transform: translateZ(0); /* 하드웨어 가속 */
+  width: 100%;  
+  width:31.6rem;
 }
 
 .singleSlot {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  overflow: hidden;
+  gap: 4.4rem;
   position: relative;
-  will-change: transform; /* GPU 가속 활용 */
-  transform: translateZ(0); /* 하드웨어 가속 강제 */
-  /* 높이는 JavaScript에서 동적으로 설정 */
+  
 }
 
 /* 1번 SVG 슬롯: 278 / (278 + 227) = 55.05% */
 .singleSlot:first-child {
-  width: 55.05%;
-  transform: translateX(1rem); /* 오른쪽으로 0.7rem 이동 */
+  /* width: 55.05%; */
 }
 
 /* 2번 SVG 슬롯: 227 / (278 + 227) = 44.95% */
 .singleSlot:last-child {
-  width: 44.95%;
-  transform: translateX(-1rem); /* 왼쪽으로 0.7rem 이동 */
+  /* width: 44.95%; */
 }
-
+.singleSlot:first-child .slotItem {
+  width:17.4rem;
+  transform: translateX(1rem);
+}
+.singleSlot:last-child .slotItem {
+  width:14.2rem;
+  transform: translateX(-1rem);
+}
 .slotItem {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 283px; /* SVG 원본 높이 */
+  height: 17.7rem; /* 고정 높이 */
   width: 100%;
   contain: layout style paint; /* 리플로우 최소화 */
 }
 
 .slotSVG {
   display: block;
-  height: 100%;
-  width: 100%;
+  max-height: 100%;
+  max-width: 100%;
+  height: auto;
+  width: auto;
+  object-fit: contain; /* SVG가 컨테이너 안에서 비율 유지하며 가운데 정렬 */
+}
+
+/* 슬롯 아이템 색상 - CSS로 처리 */
+.slotItem:nth-child(2) path {
+  fill: #2C2C2C; /* 2번째 아이템만 다른 색상 */
+}
+
+.slotItem:not(:nth-child(2)) path {
+  fill: #141414; /* 나머지는 기본 색상 */
+}
+
+.slot1_1 .slotItem:nth-child(1) svg,
+.slot1_1 .slotItem:nth-child(4) svg,
+.slot1_1 .slotItem:nth-child(7) svg,
+.slot1_1 .slotItem:nth-child(10) svg,
+.slot1_2 .slotItem:nth-child(3) svg,
+.slot1_2 .slotItem:nth-child(6) svg,
+.slot1_2 .slotItem:nth-child(8) svg,
+.slot1_2 .slotItem:nth-child(9) svg,
+
+.slot2_1 .slotItem:nth-child(1) svg,
+.slot2_1 .slotItem:nth-child(3) svg,
+.slot2_1 .slotItem:nth-child(7) svg,
+.slot2_1 .slotItem:nth-child(8) svg,
+.slot2_1 .slotItem:nth-child(9) svg,
+.slot2_2 .slotItem:nth-child(3) svg,
+.slot2_2 .slotItem:nth-child(5) svg,
+.slot2_2 .slotItem:nth-child(10) svg,
+.slot3_1 .slotItem:nth-child(3) svg,
+.slot3_1 .slotItem:nth-child(5) svg,
+.slot3_1 .slotItem:nth-child(6) svg,
+.slot3_1 .slotItem:nth-child(10) svg,
+.slot3_2 .slotItem:nth-child(1) svg,
+.slot3_2 .slotItem:nth-child(4) svg,
+.slot3_2 .slotItem:nth-child(7) svg,
+.slot3_2 .slotItem:nth-child(8) svg {
+  display: none;
 }
 
 .finalSVG {
@@ -81,7 +140,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: clamp(30rem, 61.125vw, 61.125rem);
+  width: 29.4rem;
   height: auto;
   z-index: 10;
   pointer-events: none;

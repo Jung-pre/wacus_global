@@ -2,11 +2,18 @@
 
 import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import styles from './ContactSection.module.css';
+
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export default function ContactSection() {
   const [emailError, setEmailError] = useState('');
   const sectionRef = useRef<HTMLElement>(null);
+  const contactMaskPathRef = useRef<SVGPathElement>(null);
   const ballsRef = useRef<HTMLDivElement>(null);
   const mouseRef = useRef<{ x: number; y: number; active: boolean }>({
     x: 0,
@@ -15,6 +22,7 @@ export default function ContactSection() {
   });
   const rafRef = useRef<number | null>(null);
   const initializedRef = useRef(false);
+  const gsapVh = useMemo(() => (typeof window !== 'undefined' ? window.innerHeight / 100 : 0), []);
 
   const ballLetters = useMemo(() => ['W', 'A', 'C', 'U', 'S'], []);
 
@@ -38,6 +46,7 @@ export default function ContactSection() {
       setEmailError('');
     }
   };
+
 
   useEffect(() => {
     const container = ballsRef.current;
@@ -257,8 +266,185 @@ export default function ContactSection() {
     };
   }, [ballLetters]);
 
+  // ContactSection path 확대 애니메이션 (SlotSection finalSVG 색 채우기 완료 후)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !gsapVh || !contactMaskPathRef.current || !sectionRef.current) return;
+
+    // SlotSection의 sectionRef 찾기
+    const slotSection = document.querySelector('[class*="slotSection"]') as HTMLElement;
+    if (!slotSection) return;
+
+    // SlotSection의 finalSVG 색 채우기 완료 시점 계산
+    // pathDrawStart = 220, pathDrawDuration = 100, pathFillDuration = 80
+    // 색 채우기 완료 = 220 + 100 + 80 = 400vh
+    const pathFillStart = 220 + 100; // 320vh
+    const pathFillDuration = 80; // 80vh
+    const pathScaleStart = pathFillStart + pathFillDuration; // 400vh (색 채우기 완료 후)
+
+    const pathElement = contactMaskPathRef.current;
+    const sectionElement = sectionRef.current;
+    const maskSVG = pathElement.closest('svg') as SVGSVGElement;
+
+    // 초기 matrix 계산: scale에 비례하여 translate 값 계산
+    // scale 0.48일 때: matrix(0.48, 0, 0, 0.48, 228, 87)
+    // scale 1일 때: matrix(1, 0, 0, 1, 468, 187)
+    // translate 값은 scale에 비례: e = 228 * (scale / 0.48), f = 87 * (scale / 0.48)
+    const calculateInitialMatrix = () => {
+      const initialScale = 0.48;
+      // scale 0.48일 때의 translate 값
+      const baseE = 228;
+      const baseF = 87;
+      
+      return {
+        a: initialScale,
+        b: 0,
+        c: 0,
+        d: initialScale,
+        e: baseE,
+        f: baseF,
+      };
+    };
+    
+    // scale에 따른 translate 값 계산 함수
+    // scale 0.48: e=228, f=87
+    // scale 1: e=468, f=187
+    // scale 1 이상에서는 scale에 비례하여 증가
+    const calculateTranslateForScale = (scale: number) => {
+      if (scale <= 0.48) {
+        return { e: 228, f: 87 };
+      }
+      
+      if (scale <= 1) {
+        // scale 0.48에서 1 사이의 보간
+        const scaleRatio = (scale - 0.48) / (1 - 0.48);
+        const e = 228 + (468 - 228) * scaleRatio;
+        const f = 87 + (187 - 87) * scaleRatio;
+        return { e, f };
+      }
+      
+      // scale 1 이상: e는 1:1로 증가, f는 1:4로 증가
+      // scale 1: e=468, f=187
+      const scaleRatio = scale / 1; // scale 1 기준 비율
+      const e = 468 * scaleRatio; // 1:1 비율
+      // f는 1:4 비율로 증가: f = 187 * (1 + (scaleRatio - 1) * 4)
+      const f = 187 * (1 + (scaleRatio - 1) * 2);
+      
+      return { e, f };
+    };
+
+    // 초기값: matrix(0.48, 0, 0, 0.48, 228, 87)
+    const initialMatrix = calculateInitialMatrix();
+    
+    // 목표값: scale 12일 때 translate 계산
+    const targetScale = 12;
+    const targetTranslate = calculateTranslateForScale(targetScale);
+    const targetMatrix = { 
+      a: targetScale, 
+      b: 0, 
+      c: 0, 
+      d: targetScale, 
+      e: targetTranslate.e, 
+      f: targetTranslate.f 
+    };
+
+    // 초기 matrix 설정
+    pathElement.style.transform = `matrix(${initialMatrix.a},0,0,${initialMatrix.d},${initialMatrix.e},${initialMatrix.f})`;
+
+    // matrix 확대 애니메이션
+    const scaleAnimation = ScrollTrigger.create({
+      id: 'contactPathScale',
+      trigger: slotSection,
+      start: `top+=${pathScaleStart * gsapVh}px top`,
+      end: `+=${100 * gsapVh}px`, // 100vh 동안 확대
+      scrub: true,
+      onStart: () => {
+        // 확대 시작 시 SlotSection의 finalSVG 숨기기
+        const finalSVG = slotSection.querySelector('[class*="finalSVG"]') as HTMLElement;
+        if (finalSVG) {
+          finalSVG.style.opacity = '0';
+          finalSVG.style.visibility = 'hidden';
+        }
+      },
+      onUpdate: (self) => {
+        const progress = self.progress;
+        
+        // 확대 중에는 finalSVG 숨김 유지, 초기화 시 다시 보이기
+        const finalSVG = slotSection.querySelector('[class*="finalSVG"]') as HTMLElement;
+        if (finalSVG) {
+          if (progress > 0) {
+            // 확대 중
+            finalSVG.style.opacity = '0';
+            finalSVG.style.visibility = 'hidden';
+          } else {
+            // 초기화 (progress === 0)
+            finalSVG.style.opacity = '';
+            finalSVG.style.visibility = '';
+          }
+        }
+        
+        const currentScale = initialMatrix.a + (targetMatrix.a - initialMatrix.a) * progress;
+        
+        // scale에 따른 translate 값 계산 (중앙 유지)
+        const currentTranslate = calculateTranslateForScale(currentScale);
+        
+        pathElement.style.transform = `matrix(${currentScale},0,0,${currentScale},${currentTranslate.e},${currentTranslate.f})`;
+        
+        // progress가 0으로 돌아갔을 때 (초기화) onBrowser 제거
+        if (progress === 0 && sectionElement.classList.contains(styles.onBrowser)) {
+          sectionElement.classList.remove(styles.onBrowser);
+          sectionElement.style.left = '-200vw';
+        }
+      },
+    });
+
+    // 리사이즈 시 초기 matrix 재설정 (translate 값은 scale에 비례하므로 동일)
+    const handleResize = () => {
+      // 애니메이션이 진행 중이 아닐 때만 초기값 적용
+      if (scaleAnimation.progress === 0) {
+        pathElement.style.transform = `matrix(${initialMatrix.a},0,0,${initialMatrix.d},${initialMatrix.e},${initialMatrix.f})`;
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // contactSection에 onBrowser 클래스 추가 및 left: 0 설정
+    ScrollTrigger.create({
+      id: 'contactSectionMove',
+      trigger: slotSection,
+      start: `top+=${pathScaleStart * gsapVh}px top`,
+      onEnter: () => {
+        sectionElement.classList.add(styles.onBrowser);
+        sectionElement.style.left = '0';
+      },
+    });
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      scaleAnimation?.kill();
+      ScrollTrigger.getAll().forEach((trigger) => {
+        if (trigger.vars?.id === 'contactSectionMove') {
+          trigger.kill();
+        }
+      });
+    };
+  }, [gsapVh, styles]);
+
   return (
     <section ref={sectionRef} className={styles.contactSection}>
+      {/* SVG mask 정의 - SlotSection과 동일한 path 사용 */}
+      <svg className={styles.contactMaskSVG} width="0" height="0" style={{ position: 'absolute' }}>
+        <defs>
+          <mask id="contactMask">
+            <rect width="100%" height="100%" fill="black" />
+            <path 
+              ref={contactMaskPathRef}
+              className={styles.contactMaskPath}
+              d="M960 0L764.005 586H585.02L479.064 250.942L374.044 586H195.995L0 0H188.036L292.12 377.038L394.018 0H575.969L678.96 379.066L783.043 0H960Z"
+              fill="white"
+            />
+          </mask>
+        </defs>
+      </svg>
       <div className={styles.contactInner}>
         <div>
           <h2 className={styles.contactTitle}>Work with us.</h2>
