@@ -1,19 +1,23 @@
 .slotSection {
   width: 100%;
-  height: 600vh; /* 최소 높이만 유지 */
+  height: 500vh;
   background: #0B0B0B;
   position: relative;
   overflow: hidden;
+  box-sizing: content-box;
+}
+
+:global(.onBody) .slotSection {
+  padding-bottom: 0 !important;
 }
 
 .slotSectionInner {
-  padding: 0 10.3rem;
+  padding: 0 5.5rem;
   height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  /* GSAP pin 사용 */
   overflow: hidden;
   z-index: 1;
 }
@@ -23,12 +27,11 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
-  /* height: 60rem; */
   position: relative;
   overflow: hidden;
+  justify-items: center;
 }
 
-/* 화면이 좁아져서 3개 컬럼이 다 안들어갈 때 2번째 컬럼만 표시 */
 @media (max-width: 60rem) {
   .slotContainer {
     grid-template-columns: 1fr;
@@ -48,7 +51,7 @@
 
 .slotColumn {
   display: flex;
-  flex-direction: row; /* 가로로 배치 */
+  flex-direction: row;
   gap: 0;
   width: 100%;  
   width:31.6rem;
@@ -59,17 +62,12 @@
   flex-direction: column;
   gap: 4.4rem;
   position: relative;
-  
 }
 
-/* 1번 SVG 슬롯: 278 / (278 + 227) = 55.05% */
 .singleSlot:first-child {
-  /* width: 55.05%; */
 }
 
-/* 2번 SVG 슬롯: 227 / (278 + 227) = 44.95% */
 .singleSlot:last-child {
-  /* width: 44.95%; */
 }
 .singleSlot:first-child .slotItem {
   width:17.4rem;
@@ -84,9 +82,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 17.7rem; /* 고정 높이 */
+  height: 17.7rem;
   width: 100%;
-  contain: layout style paint; /* 리플로우 최소화 */
+  contain: layout style paint;
 }
 
 .slotSVG {
@@ -95,16 +93,15 @@
   max-width: 100%;
   height: auto;
   width: auto;
-  object-fit: contain; /* SVG가 컨테이너 안에서 비율 유지하며 가운데 정렬 */
+  object-fit: contain;
 }
 
-/* 슬롯 아이템 색상 - CSS로 처리 */
 .slotItem:nth-child(2) path {
-  fill: #2C2C2C; /* 2번째 아이템만 다른 색상 */
+  fill: #2C2C2C;
 }
 
 .slotItem:not(:nth-child(2)) path {
-  fill: #141414; /* 나머지는 기본 색상 */
+  fill: #141414;
 }
 
 .slot1_1 .slotItem:nth-child(1) svg,
@@ -152,3 +149,22 @@
   display: block;
 }
 
+@media (max-width: 768px) {
+  .slotSectionInner {
+    padding:0;
+  }
+  .slotColumn {
+    width:19.75rem;
+  }
+  .singleSlot:first-child .slotItem {
+    width:10.875rem;
+    transform: translateX(0.65rem);
+  }
+  .singleSlot:last-child .slotItem {
+    width:8.875rem;
+    transform: translateX(-0.65rem);
+  }
+  .finalSVG {
+    width:18.65rem;
+  }
+}

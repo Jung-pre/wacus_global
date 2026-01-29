@@ -6,28 +6,94 @@
   align-items: center;
   justify-content: center;
   gap: clamp(1.5rem, 2.62vw, 2.62rem);
-  background-image: url('/main/bg_experience.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   position: relative;
+  overflow: hidden;
 }
 
-.experienceSection::before {
-  content: '';
+.portfolioBg {
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  width: 100%;
+  height: 120%;
+  --rotation: -2.5deg;
+  --perspective: 0px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0px;
+  transform: rotate(var(--rotation)) translate3d(0, -10%, var(--perspective));
+  overflow: hidden;
   z-index: 0;
+  opacity: 0.3;
 }
 
-.experienceTitle,
-.viewMoreButton {
+.portfolioBg .portfolioContents {
+  align-items: center;
+  display: flex;
+  height: auto;
+  padding: 1.0416666667vw;
+  perspective: 1000px;
+  perspective-origin: 50%;
   position: relative;
-  z-index: 1;
+  transform-style: preserve-3d;
+  width: 100%;
+  --aspect-ratio: 1.7777777777778;
+}
+
+.portfolioBg .portfolioContents a {
+  border-radius: 10px;
+  display: block;
+  height: auto;
+  overflow: hidden;
+  width: 100%;
+}
+
+.portfolioBg .portfolioContents video {
+  background-color: #191919;
+  aspect-ratio: var(--aspect-ratio);
+  display: block;
+  height: auto;
+  overflow: hidden;
+  position: relative;
+  transform: rotate(0deg) scale(1);
+  transform-origin: center;
+  transition: transform 0.6s ease;
+  width: 100%;
+}
+
+.portfolioBg .portfolioContents a:hover video {
+  transform: scale(1.05);
+}
+
+.portfolioBg .verticalList {
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+}
+
+.portfolioContentsWrapper {
+  will-change: transform;
+  display: flex;
+  flex-direction: column;
+}
+
+.portfolioBg.pc {
+  display: grid;
+}
+
+.portfolioBg.mo {
+  display: none;
+}
+
+.experienceContent {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(1.5rem, 2.62vw, 2.62rem);
 }
 
 .experienceTitle {
@@ -49,17 +115,21 @@
   font-size: 1.25rem;
   font-style: normal;
   font-weight: 700;
-  line-height: 150%; /* 1.875rem */
+  line-height: 150%;
   text-transform: uppercase;
   border: none;
   padding: 1rem 2.5rem;
   cursor: pointer;
   transition: background 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
 }
 
 .viewMoreButton:hover {
   background: #6b30c7;
 }
+
+
 
 @media (max-width: 1024px) {
   .experienceTitle {
@@ -75,17 +145,34 @@
 
 @media (max-width: 768px) {
   .experienceSection {
-    height: 40rem;
-    padding: 2rem 1rem;
+    height: 100vh;
+    padding: 0rem 1.4rem;
   }
-  
+
+  .portfolioBg.pc {
+    display: none;
+  }
+
+  .portfolioBg.mo {
+    display: grid;
+  }
+
+  .portfolioBg .verticalList.column3 {
+    display: none;
+  }
+
+  .portfolioBg {
+    grid-template-columns: repeat(2, 1fr);
+    transform: rotate(-2deg) translate3d(0, -10%, 0);
+  }
+
   .experienceTitle {
-    font-size: 3rem;
+    font-size: 3.125rem;
     letter-spacing: -0.09rem;
   }
   
   .viewMoreButton {
     font-size: 0.875rem;
-    padding: 0.75rem 1.5rem;
+    padding: 0.4375rem 2.25rem;
   }
 }

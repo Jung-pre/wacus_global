@@ -13,7 +13,6 @@ if (typeof window !== 'undefined') {
 export default function ContactSection() {
   const [emailError, setEmailError] = useState('');
   const sectionRef = useRef<HTMLElement>(null);
-  const contactMaskPathRef = useRef<SVGPathElement>(null);
   const ballsRef = useRef<HTMLDivElement>(null);
   const mouseRef = useRef<{ x: number; y: number; active: boolean }>({
     x: 0,
@@ -46,7 +45,6 @@ export default function ContactSection() {
       setEmailError('');
     }
   };
-
 
   useEffect(() => {
     const container = ballsRef.current;
@@ -82,13 +80,18 @@ export default function ContactSection() {
       const rect = container.getBoundingClientRect();
       const now = performance.now();
       const spawnGap = 70;
+      const isMobile = window.innerWidth < 769;
+      const baseSize = 85;
+      const size = isMobile ? baseSize * 3 / 5 : baseSize;
+      const baseFontSize = 3.4;
+      const fontSize = isMobile ? baseFontSize * 3 / 5 : baseFontSize;
       for (let i = 0; i < ballCount; i += 1) {
         const el = document.createElement('div');
         el.className = styles.contactBall;
-        const size = 85;
         const letter = ballLetters[i % ballLetters.length];
         el.style.width = `${size}px`;
         el.style.height = `${size}px`;
+        el.style.fontSize = `${fontSize}rem`;
         el.style.background = letterColors[letter];
         el.textContent = letter;
         container.appendChild(el);
@@ -266,130 +269,47 @@ export default function ContactSection() {
     };
   }, [ballLetters]);
 
-  // ContactSection path 확대 애니메이션 (SlotSection finalSVG 색 채우기 완료 후)
   useEffect(() => {
-    if (typeof window === 'undefined' || !gsapVh || !contactMaskPathRef.current || !sectionRef.current) return;
+    if (typeof window === 'undefined' || !gsapVh || !sectionRef.current) return;
 
-    // SlotSection의 sectionRef 찾기
     const slotSection = document.querySelector('[class*="slotSection"]') as HTMLElement;
     if (!slotSection) return;
 
-    // SlotSection의 finalSVG 색 채우기 완료 시점 계산
-    // pathDrawStart = 220, pathDrawDuration = 100, pathFillDuration = 80
-    // 색 채우기 완료 = 220 + 100 + 80 = 400vh
-    const pathFillStart = 220 + 100; // 320vh
-    const pathFillDuration = 80; // 80vh
-    const pathScaleStart = pathFillStart + pathFillDuration; // 400vh (색 채우기 완료 후)
-
-    const pathElement = contactMaskPathRef.current;
+    const pathScaleStart = 400;
     const sectionElement = sectionRef.current;
-    const maskSVG = pathElement.closest('svg') as SVGSVGElement;
+    const baseSizeRem = 29.4;
+    const maxSizeRem = 600;
 
-    // 초기 matrix 계산: scale에 비례하여 translate 값 계산
-    // scale 0.48일 때: matrix(0.48, 0, 0, 0.48, 228, 87)
-    // scale 1일 때: matrix(1, 0, 0, 1, 468, 187)
-    // translate 값은 scale에 비례: e = 228 * (scale / 0.48), f = 87 * (scale / 0.48)
-    const calculateInitialMatrix = () => {
-      const initialScale = 0.48;
-      // scale 0.48일 때의 translate 값
-      const baseE = 228;
-      const baseF = 87;
-      
-      return {
-        a: initialScale,
-        b: 0,
-        c: 0,
-        d: initialScale,
-        e: baseE,
-        f: baseF,
-      };
-    };
-    
-    // scale에 따른 translate 값 계산 함수
-    // scale 0.48: e=228, f=87
-    // scale 1: e=468, f=187
-    // scale 1 이상에서는 scale에 비례하여 증가
-    const calculateTranslateForScale = (scale: number) => {
-      if (scale <= 0.48) {
-        return { e: 228, f: 87 };
-      }
-      
-      if (scale <= 1) {
-        // scale 0.48에서 1 사이의 보간
-        const scaleRatio = (scale - 0.48) / (1 - 0.48);
-        const e = 228 + (468 - 228) * scaleRatio;
-        const f = 87 + (187 - 87) * scaleRatio;
-        return { e, f };
-      }
-      
-      // scale 1 이상: e는 1:1로 증가, f는 1:4로 증가
-      // scale 1: e=468, f=187
-      const scaleRatio = scale / 1; // scale 1 기준 비율
-      const e = 468 * scaleRatio; // 1:1 비율
-      // f는 1:4 비율로 증가: f = 187 * (1 + (scaleRatio - 1) * 4)
-      const f = 187 * (1 + (scaleRatio - 1) * 2);
-      
-      return { e, f };
-    };
-
-    // 초기값: matrix(0.48, 0, 0, 0.48, 228, 87)
-    const initialMatrix = calculateInitialMatrix();
-    
-    // 목표값: scale 12일 때 translate 계산
-    const targetScale = 12;
-    const targetTranslate = calculateTranslateForScale(targetScale);
-    const targetMatrix = { 
-      a: targetScale, 
-      b: 0, 
-      c: 0, 
-      d: targetScale, 
-      e: targetTranslate.e, 
-      f: targetTranslate.f 
-    };
-
-    // 초기 matrix 설정
-    pathElement.style.transform = `matrix(${initialMatrix.a},0,0,${initialMatrix.d},${initialMatrix.e},${initialMatrix.f})`;
-
-    // matrix 확대 애니메이션
     const scaleAnimation = ScrollTrigger.create({
       id: 'contactPathScale',
       trigger: slotSection,
       start: `top+=${pathScaleStart * gsapVh}px top`,
-      end: `+=${100 * gsapVh}px`, // 100vh 동안 확대
+      end: `+=${100 * gsapVh}px`,
       scrub: true,
-      onStart: () => {
-        // 확대 시작 시 SlotSection의 finalSVG 숨기기
-        const finalSVG = slotSection.querySelector('[class*="finalSVG"]') as HTMLElement;
-        if (finalSVG) {
-          finalSVG.style.opacity = '0';
-          finalSVG.style.visibility = 'hidden';
-        }
-      },
       onUpdate: (self) => {
         const progress = self.progress;
         
-        // 확대 중에는 finalSVG 숨김 유지, 초기화 시 다시 보이기
         const finalSVG = slotSection.querySelector('[class*="finalSVG"]') as HTMLElement;
         if (finalSVG) {
           if (progress > 0) {
-            // 확대 중
             finalSVG.style.opacity = '0';
             finalSVG.style.visibility = 'hidden';
           } else {
-            // 초기화 (progress === 0)
             finalSVG.style.opacity = '';
             finalSVG.style.visibility = '';
           }
         }
         
-        const currentScale = initialMatrix.a + (targetMatrix.a - initialMatrix.a) * progress;
+        const currentSizeRem = baseSizeRem + (maxSizeRem - baseSizeRem) * progress;
+        const startY = 50;
+        const endY = 20;
+        const currentY = startY + (endY - startY) * progress;
         
-        // scale에 따른 translate 값 계산 (중앙 유지)
-        const currentTranslate = calculateTranslateForScale(currentScale);
+        sectionElement.style.maskSize = `${currentSizeRem}rem auto`;
+        sectionElement.style.webkitMaskSize = `${currentSizeRem}rem auto`;
+        sectionElement.style.maskPosition = `50% ${currentY}%`;
+        sectionElement.style.webkitMaskPosition = `50% ${currentY}%`;
         
-        pathElement.style.transform = `matrix(${currentScale},0,0,${currentScale},${currentTranslate.e},${currentTranslate.f})`;
-        
-        // progress가 0으로 돌아갔을 때 (초기화) onBrowser 제거
         if (progress === 0 && sectionElement.classList.contains(styles.onBrowser)) {
           sectionElement.classList.remove(styles.onBrowser);
           sectionElement.style.left = '-200vw';
@@ -397,17 +317,17 @@ export default function ContactSection() {
       },
     });
 
-    // 리사이즈 시 초기 matrix 재설정 (translate 값은 scale에 비례하므로 동일)
     const handleResize = () => {
-      // 애니메이션이 진행 중이 아닐 때만 초기값 적용
       if (scaleAnimation.progress === 0) {
-        pathElement.style.transform = `matrix(${initialMatrix.a},0,0,${initialMatrix.d},${initialMatrix.e},${initialMatrix.f})`;
+        sectionElement.style.maskSize = `${baseSizeRem}rem auto`;
+        sectionElement.style.webkitMaskSize = `${baseSizeRem}rem auto`;
+        sectionElement.style.maskPosition = '50% 50%';
+        sectionElement.style.webkitMaskPosition = '50% 50%';
       }
     };
 
     window.addEventListener('resize', handleResize);
 
-    // contactSection에 onBrowser 클래스 추가 및 left: 0 설정
     ScrollTrigger.create({
       id: 'contactSectionMove',
       trigger: slotSection,
@@ -431,165 +351,153 @@ export default function ContactSection() {
 
   return (
     <section ref={sectionRef} className={styles.contactSection}>
-      {/* SVG mask 정의 - SlotSection과 동일한 path 사용 */}
-      <svg className={styles.contactMaskSVG} width="0" height="0" style={{ position: 'absolute' }}>
-        <defs>
-          <mask id="contactMask">
-            <rect width="100%" height="100%" fill="black" />
-            <path 
-              ref={contactMaskPathRef}
-              className={styles.contactMaskPath}
-              d="M960 0L764.005 586H585.02L479.064 250.942L374.044 586H195.995L0 0H188.036L292.12 377.038L394.018 0H575.969L678.96 379.066L783.043 0H960Z"
-              fill="white"
-            />
-          </mask>
-        </defs>
-      </svg>
-      <div className={styles.contactInner}>
-        <div>
-          <h2 className={styles.contactTitle}>Work with us.</h2>
-          <form className={styles.contactForm} onSubmit={handleSubmit} noValidate>
-            <div className={styles.contactField}>
-              <label className={styles.contactLabel} htmlFor="contact-email">
-                <span className={styles.contactLabelRow}>
-                  <Image
-                    src="/main/icon_mail.svg"
-                    alt=""
-                    width={16}
-                    height={16}
-                    className={styles.contactIcon}
+      <div className={styles.contactInnerWrapper}>
+        <div className={styles.contactInner}>
+          <div>
+            <h2 className={styles.contactTitle}>Work with us.</h2>
+            <form className={styles.contactForm} onSubmit={handleSubmit} noValidate>
+              <div className={`${styles.contactField} ${emailError ? styles.errorOn : ''}`}>
+                <label className={styles.contactLabel} htmlFor="contact-email">
+                  <span className={styles.contactLabelRow}>
+                    <Image
+                      src="/main/icon_mail.svg"
+                      alt=""
+                      width={16}
+                      height={16}
+                      className={styles.contactIcon}
+                    />
+                    Email Address
+                  </span>
+                </label>
+                <div className={styles.contactInputWrapper}>
+                  <input
+                    id="contact-email"
+                    className={styles.contactInput}
+                    type="email"
+                    placeholder="example@yourdomain.com"
+                    onChange={handleEmailChange}
+                    aria-invalid={emailError ? 'true' : 'false'}
+                    aria-describedby={emailError ? 'contact-email-error' : undefined}
                   />
-                  Email Address
-                </span>
-              </label>
-              <div className={styles.contactInputWrapper}>
-                <input
-                  id="contact-email"
-                  className={styles.contactInput}
-                  type="email"
-                  placeholder="example@yourdomain.com"
-                  onChange={handleEmailChange}
-                  aria-invalid={emailError ? 'true' : 'false'}
-                  aria-describedby={emailError ? 'contact-email-error' : undefined}
-                />
-                {emailError ? (
-                  <div id="contact-email-error" className={styles.contactError}>
-                    <button
-                      type="button"
-                      className={styles.contactErrorIcon}
-                      aria-label="Dismiss error"
-                      onClick={() => setEmailError('')}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
+                  {emailError ? (
+                    <div id="contact-email-error" className={styles.contactError}>
+                      <button
+                        type="button"
+                        className={styles.contactErrorIcon}
+                        aria-label="Dismiss error"
+                        onClick={() => setEmailError('')}
                       >
-                        <circle cx="8" cy="8" r="6" stroke="white" strokeWidth="1.33" />
-                        <path d="M6.11438 6.11426L9.88562 9.88549" stroke="white" strokeWidth="1.33" strokeLinecap="round" />
-                        <path d="M9.88562 6.11426L6.11438 9.88549" stroke="white" strokeWidth="1.33" strokeLinecap="round" />
-                      </svg>
-                    </button>
-                    {emailError}
-                  </div>
-                ) : null}
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                        >
+                          <circle cx="8" cy="8" r="6" stroke="white" strokeWidth="1.33" />
+                          <path d="M6.11438 6.11426L9.88562 9.88549" stroke="white" strokeWidth="1.33" strokeLinecap="round" />
+                          <path d="M9.88562 6.11426L6.11438 9.88549" stroke="white" strokeWidth="1.33" strokeLinecap="round" />
+                        </svg>
+                      </button>
+                      {emailError}
+                    </div>
+                  ) : null}
+                </div>
               </div>
-            </div>
-            <div className={styles.contactField}>
-              <label className={`${styles.contactLabel} ${styles.contactLabelMuted}`} htmlFor="contact-company">
-                <span className={styles.contactLabelRow}>
-                  <Image
-                    src="/main/icon_enterprise.svg"
-                    alt=""
-                    width={16}
-                    height={16}
-                    className={styles.contactIcon}
+              <div className={styles.contactField}>
+                <label className={`${styles.contactLabel} ${styles.contactLabelMuted}`} htmlFor="contact-company">
+                  <span className={styles.contactLabelRow}>
+                    <Image
+                      src="/main/icon_enterprise.svg"
+                      alt=""
+                      width={16}
+                      height={16}
+                      className={styles.contactIcon}
+                    />
+                    Company Name
+                  </span>
+                </label>
+                <div className={styles.contactInputWrapper}>
+                  <input
+                    id="contact-company"
+                    className={styles.contactInput}
+                    type="text"
+                    placeholder="Company Name"
                   />
-                  Company Name
-                </span>
-              </label>
-              <div className={styles.contactInputWrapper}>
-                <input
-                  id="contact-company"
-                  className={styles.contactInput}
-                  type="text"
-                  placeholder="Company Name"
-                />
+                </div>
               </div>
-            </div>
-            <div className={styles.contactField}>
-              <label className={`${styles.contactLabel} ${styles.contactLabelMuted}`} htmlFor="contact-phone">
-                <span className={styles.contactLabelRow}>
-                  <Image
-                    src="/main/icon_call.svg"
-                    alt=""
-                    width={16}
-                    height={16}
-                    className={styles.contactIcon}
+              <div className={styles.contactField}>
+                <label className={`${styles.contactLabel} ${styles.contactLabelMuted}`} htmlFor="contact-phone">
+                  <span className={styles.contactLabelRow}>
+                    <Image
+                      src="/main/icon_call.svg"
+                      alt=""
+                      width={16}
+                      height={16}
+                      className={styles.contactIcon}
+                    />
+                    Contact Number
+                  </span>
+                </label>
+                <div className={styles.contactInputWrapper}>
+                  <input
+                    id="contact-phone"
+                    className={styles.contactInput}
+                    type="tel"
+                    placeholder="+1 (000) 000-0000"
                   />
-                  Contact Number
-                </span>
-              </label>
-              <div className={styles.contactInputWrapper}>
-                <input
-                  id="contact-phone"
-                  className={styles.contactInput}
-                  type="tel"
-                  placeholder="+1 (000) 000-0000"
-                />
+                </div>
               </div>
-            </div>
-            <button type="submit" className={styles.contactButton}>
-              SUBMIT
-            </button>
-          </form>
-        </div>
-        <div className={styles.contactInfo}>
-          <div>
-            <ul className={styles.contactList}>
-              <li><a href="#" className={styles.contactLink}>Work</a></li>
-              <li><a href="#" className={styles.contactLink}>About</a></li>
-              <li><a href="#" className={styles.contactLink}>Services</a></li>
-              <li><a href="#" className={styles.contactLink}>Portfolio</a></li>
-              <li><a href="#" className={styles.contactLink}>Contact</a></li>
-            </ul>
+              <button type="submit" className={styles.contactButton}>
+                SUBMIT
+              </button>
+            </form>
           </div>
-          <div>
-            <div className={styles.contactListTitle}>Social</div>
-            <ul className={styles.contactIconList}>
-              <li>
-                <a href="#" className={styles.contactIconLink} aria-label="LinkedIn">
-                  <Image
-                    src="/main/icon_social01.svg"
-                    alt=""
-                    width={16}
-                    height={16}
-                    className={styles.contactIconItem}
-                  />
-                </a>
-              </li>
-              <li>
-                <a href="#" className={styles.contactIconLink} aria-label="Instagram">
-                  <Image
-                    src="/main/icon_social02.svg"
-                    alt=""
-                    width={16}
-                    height={16}
-                    className={styles.contactIconItem}
-                  />
-                </a>
-              </li>
-            </ul>
+          <div className={styles.contactInfo}>
+            <div>
+              <ul className={styles.contactList}>
+                <li><a href="#" className={styles.contactLink}>Work</a></li>
+                <li><a href="#" className={styles.contactLink}>About</a></li>
+                <li><a href="#" className={styles.contactLink}>Services</a></li>
+                <li><a href="#" className={styles.contactLink}>Portfolio</a></li>
+                <li><a href="#" className={styles.contactLink}>Contact</a></li>
+              </ul>
+            </div>
+            <div>
+              <div className={styles.contactListTitle}>Social</div>
+              <ul className={styles.contactIconList}>
+                <li>
+                  <a href="#" className={styles.contactIconLink} aria-label="LinkedIn">
+                    <Image
+                      src="/main/icon_social01.svg"
+                      alt=""
+                      width={16}
+                      height={16}
+                      className={styles.contactIconItem}
+                    />
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className={styles.contactIconLink} aria-label="Instagram">
+                    <Image
+                      src="/main/icon_social02.svg"
+                      alt=""
+                      width={16}
+                      height={16}
+                      className={styles.contactIconItem}
+                    />
+                  </a>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
-      <div className={styles.contactFooter}>
-        <span>Copyright © 2026 WACUS Global. All rights reserved.</span>
-        <div className={styles.contactFooterLinks}>
-          <span>Privacy Policy</span>
-          <span>Terms of Service</span>
+        <div className={styles.contactFooter}>
+          <span>Copyright © 2026 WACUS Global. All rights reserved.</span>
+          <div className={styles.contactFooterLinks}>
+            <span>Privacy Policy</span>
+            <span>Terms of Service</span>
+          </div>
         </div>
       </div>
       <div ref={ballsRef} className={styles.contactBalls} aria-hidden="true" />

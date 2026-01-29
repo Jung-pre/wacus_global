@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import styles from './CardFlipSection.module.css';
@@ -10,15 +10,15 @@ if (typeof window !== 'undefined') {
 }
 
 interface CardPair {
-  front: number; // 홀수 (앞면)
-  back: number;  // 짝수 (뒷면)
+  front: number;
+  back: number;
 }
 
 export default function CardFlipSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
   
-  // 카드 쌍 정의: 홀수가 앞, 짝수가 뒤 (5장)
   const cardPairs: CardPair[] = [
     { front: 1, back: 2 },
     { front: 3, back: 4 },
@@ -27,8 +27,24 @@ export default function CardFlipSection() {
     { front: 9, back: 10 },
   ];
   
-  // 각 카드의 z값 정의
   const cardZValues = [150, 45, 38, 15, 10];
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 769);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const getImageSrc = (cardNumber: number) => {
+    if (isMobile && (cardNumber === 1 || cardNumber === 2)) {
+      return `/main/img_works${String(cardNumber).padStart(2, '0')}_m.jpg`;
+    }
+    return `/main/img_works${String(cardNumber).padStart(2, '0')}.jpg`;
+  };
 
   useEffect(() => {
     if (!sectionRef.current || !containerRef.current) return;
@@ -44,34 +60,33 @@ export default function CardFlipSection() {
     const allCards = [card1, ...cards2to5].filter(Boolean);
 
     const ctx = gsap.context(() => {
-      // container를 pin으로 고정
+      const currentIsMobile = window.innerWidth < 769;
+      const initialScale = currentIsMobile ? 1.6 : 1.5;
+      const finalScale = currentIsMobile ? 1.6 : 2.5;
+
       ScrollTrigger.create({
         id: 'cardFlipPin',
         trigger: sectionRef.current,
         start: () => `top ${10 * gsapVh}px`,
         end: () => `+=${150 * gsapVh}px`,
         pin: container,
-        // pinSpacing: true,
       });
 
-      // 초기 상태 설정
       gsap.set(container, {
         opacity: 1,
       });
 
-      // cardsContainer 초기 상태 설정
       gsap.set(cardsContainer, {
         rotationX: 0,
-        scale: 1.5, // 초기 스케일
+        scale: initialScale,
         transformOrigin: 'center center',
       });
 
-      // 스크롤에 따라 cardsContainer 회전 애니메이션
       const timeline = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
-          end: `+=${150 * gsapVh}px`, // height 증가: 100vh -> 150vh
+          end: `+=${150 * gsapVh}px`,
           scrub: true,
           invalidateOnRefresh: true,
         },
@@ -83,7 +98,6 @@ export default function CardFlipSection() {
         ease: 'none',
       });
 
-      // 1번 카드 초기 상태 설정: translate(-50%, -50%) translate3d(0px, 0px, 150px)
       gsap.set(card1, {
         x: '-50%',
         y: '-50%',
@@ -91,46 +105,42 @@ export default function CardFlipSection() {
         transformOrigin: 'center center',
       });
 
-      // 1번 카드: z값을 0으로, scale 확대 (회전이 90% 진행된 후 시작)
       timeline.to(card1, {
         z: 0,
-        scale: 2.5,
+        scale: finalScale,
         x: '-50%',
         y: '-50%',
         duration: 0.1,
         ease: 'none',
-      }, 0.9); // 회전이 90% 진행된 후 시작
+      }, 0.9);
 
-      // 확대가 완료된 후 플립섹션 opacity를 0으로
       timeline.to(container, {
         opacity: 0,
-        duration: 0.5, // duration 증가: 0.1 -> 0.5 (더 천천히 사라짐)
-        ease: 'power2.out', // 부드러운 이징
-      }, 1.0); // 확대 완료(1.0) 후 시작
+        duration: 0.5,
+        ease: 'power2.out',
+      }, 1.0);
 
-      // 2-5번 카드: 입체적으로 산개 (회전이 40%부터 90%까지)
       cards2to5.forEach((card, index) => {
-        const currentZ = cardZValues[index + 1]; // 2번: 45, 3번: 38, 4번: 15, 5번: 10
-        const targetZ = currentZ + 200; // z값 증가
+        const currentZ = cardZValues[index + 1];
+        const targetZ = currentZ + 200;
         
-        // 각 카드마다 다른 방향으로 입체적으로 산개
         let spreadX = 0;
         let spreadY = 0;
         
         switch(index) {
-          case 0: // 2번 카드: 왼쪽 위로
+          case 0:
             spreadX = -700;
             spreadY = -400;
             break;
-          case 1: // 3번 카드: 오른쪽 아래로
+          case 1:
             spreadX = 700;
             spreadY = 400;
             break;
-          case 2: // 4번 카드: 왼쪽 아래로
+          case 2:
             spreadX = -600;
             spreadY = 500;
             break;
-          case 3: // 5번 카드: 오른쪽 위로
+          case 3:
             spreadX = 600;
             spreadY = -500;
             break;
@@ -143,38 +153,46 @@ export default function CardFlipSection() {
           filter: 'blur(10px)',
           duration: 0.5,
           ease: 'power2.out',
-        }, 0.4); // 회전이 40%부터 90%까지 진행
+        }, 0.4);
       });
 
-      // top 50vh부터 50vh 이동하는 동안 cardsContainer 스케일을 1로 줄이는 애니메이션
-      
+      const targetScale = currentIsMobile ? 2.2 : 1.0;
       gsap.to(cardsContainer, {
-        scale: 1,
+        scale: targetScale,
         scrollTrigger: {
           trigger: sectionRef.current,
           start: `top ${50 * gsapVh}px`,
-          end: `+=${75 * gsapVh}px`, // 스케일 애니메이션 구간도 늘림: 50vh -> 75vh
+          end: `+=${75 * gsapVh}px`,
           scrub: true,
           invalidateOnRefresh: true,
         },
       });
 
-      // 각 카드 처리 - 크기만 설정
       allCards.forEach((card, index) => {
         if (!card) return;
         
         const cardInner = card.querySelector(`.${styles.cardInner}`) as HTMLElement;
         const firstImage = card.querySelector(`.${styles.cardImage}`) as HTMLImageElement;
         
-        // 이미지가 로드된 후 크기만 설정
         const setupCard = () => {
+          const currentIsMobile = window.innerWidth < 769;
+          
           if (firstImage && firstImage.complete && firstImage.naturalWidth > 0) {
             const imgWidth = firstImage.naturalWidth;
             const imgHeight = firstImage.naturalHeight;
             
             if (cardInner) {
-              // 2-5번 카드는 너비 480px로 고정
-              if (index > 0) {
+              if (index === 0 && currentIsMobile) {
+                const mobileWidth = 17.5 * 16;
+                const mobileHeight = 37.875 * 16;
+                
+                gsap.set(cardInner, {
+                  width: mobileWidth,
+                  height: mobileHeight,
+                  transformStyle: 'preserve-3d',
+                  transformOrigin: 'center center',
+                });
+              } else if (index > 0) {
                 const fixedWidth = 480;
                 const aspectRatio = imgWidth / imgHeight;
                 const fixedHeight = fixedWidth / aspectRatio;
@@ -186,7 +204,6 @@ export default function CardFlipSection() {
                   transformOrigin: 'center center',
                 });
               } else {
-                // 1번 카드는 원본 크기
                 gsap.set(cardInner, {
                   width: imgWidth,
                   height: imgHeight,
@@ -196,7 +213,6 @@ export default function CardFlipSection() {
               }
             }
             
-            // opacity만 설정
             gsap.set(card, {
               opacity: 1,
             });
@@ -211,7 +227,6 @@ export default function CardFlipSection() {
 
     return () => {
       ctx.revert();
-      // pin ScrollTrigger 정리
       ScrollTrigger.getAll().forEach((trigger) => {
         if (trigger.vars?.id === 'cardFlipPin') {
           trigger.kill();
@@ -225,33 +240,28 @@ export default function CardFlipSection() {
       <div ref={containerRef} className={styles.container}>
         <div className={styles.cardsWrapper}>
           <div className={styles.cardsContainer}>
-            {/* 1번 카드 */}
             <div className={styles.card}>
               <div className={styles.cardInner}>
-                {/* 카드 앞면 (홀수) */}
                 <div className={styles.cardFace}>
                   <img
-                    src={`/main/img_works${String(cardPairs[0].front).padStart(2, '0')}.jpg`}
+                    src={getImageSrc(cardPairs[0].front)}
                     alt={`Card ${cardPairs[0].front} front`}
                     className={styles.cardImage}
                   />
                 </div>
-                {/* 카드 뒷면 (짝수) */}
                 <div className={`${styles.cardFace} ${styles.cardBack}`}>
                   <img
-                    src={`/main/img_works${String(cardPairs[0].back).padStart(2, '0')}.jpg`}
+                    src={getImageSrc(cardPairs[0].back)}
                     alt={`Card ${cardPairs[0].back} back`}
                     className={styles.cardImage}
                   />
                 </div>
               </div>
             </div>
-            {/* 2,3,4,5번 카드를 감싸는 div */}
             <div className={styles.cardsGroup}>
               {cardPairs.slice(1).map((pair, index) => (
                 <div key={index + 1} className={styles.card}>
                   <div className={styles.cardInner}>
-                    {/* 카드 앞면 (홀수) */}
                     <div className={styles.cardFace}>
                       <img
                         src={`/main/img_works${String(pair.front).padStart(2, '0')}.jpg`}
@@ -259,7 +269,6 @@ export default function CardFlipSection() {
                         className={styles.cardImage}
                       />
                     </div>
-                    {/* 카드 뒷면 (짝수) */}
                     <div className={`${styles.cardFace} ${styles.cardBack}`}>
                       <img
                         src={`/main/img_works${String(pair.back).padStart(2, '0')}.jpg`}

@@ -58,7 +58,7 @@
   font-size: 1.5rem;
   font-style: normal;
   font-weight: 700;
-  line-height: 150%; /* 2.25rem */
+  line-height: 150%;
   letter-spacing: -0.045rem;
   margin: 0;
   flex: 1;
@@ -72,8 +72,6 @@
   overflow-x: hidden;
   padding-right: 1rem;  
   margin: 1rem 0;
-  /* scrollbar-width: thin;
-  scrollbar-color: #131313 #D9D9D9; */
 }
 
 .content::-webkit-scrollbar {
@@ -118,9 +116,7 @@
   font-size: 1.25rem;
   font-style: normal;
   font-weight: 600;
-  line-height: 150%; /* 1.875rem */
-  /* margin: 1.25rem 0 0.4rem; */
-  
+  line-height: 150%;
 }
 
 .text {
@@ -131,7 +127,7 @@
   font-size: 1rem;
   font-style: normal;
   font-weight: 400;
-  line-height: 150%; /* 1.5rem */
+  line-height: 150%;
   margin: 0 0 1.5rem;
 }
 
@@ -156,7 +152,6 @@
   display: flex;
   gap: 1rem;
   justify-content: center;
-  /* margin-top: 1.5rem; */
   flex-shrink: 0;
 }
 
@@ -173,8 +168,8 @@ text-align: center;
 font-family: Urbanist;
 font-size: 1.25rem;
 font-style: normal;
-font-weight: 600;
-line-height: 150%; /* 1.875rem */
+  font-weight: 600;
+  line-height: 150%;
 
 border: none;
 cursor: pointer;
@@ -184,7 +179,6 @@ cursor: pointer;
 .acceptButton:hover,
 .rejectButton:hover {
   opacity: 0.9;
-  /* transform: translateY(-1px); */
 }
 
 .acceptButton:active,

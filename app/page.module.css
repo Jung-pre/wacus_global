@@ -3,7 +3,6 @@
   background: black;
   position: relative;
   background: #131313;
-  /* 이중 스크롤 방지: overflow 설정하지 않음 */
   width: 100%;
 }
 
@@ -20,7 +19,7 @@
 
 .heroSection {
   position: relative;
-  height: 300vh; /* 스크롤 모션을 위한 높이 추가 */
+  height: 300vh;
   width: 100%;
   z-index: 10;
 }
@@ -70,7 +69,7 @@
   font-size: 3.75rem;
   font-style: normal;
   font-weight: 300;
-  line-height: 160%; /* 6rem */
+  line-height: 160%;
   margin: 0;
   margin-bottom: 10rem;
 }

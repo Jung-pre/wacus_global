@@ -67,7 +67,6 @@ export default function Home() {
     const backgroundImage = backgroundImageRef.current;
     const heroSection = heroSectionRef.current;
 
-    // ThreeScene container를 pin으로 고정 (히어로 섹션이 끝날 때까지)
     if (threeSceneRef.current) {
       ScrollTrigger.create({
         id: 'threeScenePin',
@@ -142,7 +141,9 @@ export default function Home() {
       <FAQSection />
 
       <SlotSection />
+      
       <ContactSection />
+
       <CookiePolicyModal />
     </main>
   );

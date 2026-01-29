@@ -63,8 +63,6 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    // Google Search Console 등에서 받은 verification 코드를 추가하세요
-    // google: "verification_code",
   },
 };
 

@@ -57,7 +57,7 @@ export default function FAQSection() {
                     alt="Q"
                   />
                 </div>
-                <span className={styles.questionText}>Q. {faq.question}</span>
+                <span className={styles.questionText}>{faq.question}</span>
                 <div className={`${styles.arrowIcon} ${isOpen ? styles.arrowOpen : ''}`}>
                   <img
                     src="/main/icon_forward.svg"

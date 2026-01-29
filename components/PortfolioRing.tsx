@@ -19,6 +19,7 @@ interface PortfolioRingProps {
   isScrolling?: boolean;
   radiusMultiplier?: number;
   scrollTriggerRef?: React.RefObject<HTMLElement | null>;
+  mobileMultiplier?: number;
 }
 
 export default function PortfolioRing({ 
@@ -27,14 +28,21 @@ export default function PortfolioRing({
   ringRotation = [0, 0, 0],
   isScrolling = false,
   radiusMultiplier = 0.8,
-  scrollTriggerRef
+  scrollTriggerRef,
+  mobileMultiplier = 1
 }: PortfolioRingProps) {
   const ringRef = useRef<Group>(null);
   const cylinderRef = useRef<Mesh>(null);
   const cardCount = 10;
-  const radius = globeScale * radiusMultiplier;
-  const cardHeight = 1.2;
+  const baseCardHeight = 1.2;
+  const baseGlobeScale = 2.45;
+  const thinCardHeight = 0.72;
+  
+  const isMobile = mobileMultiplier > 1;
+  const cardHeightValue = isMobile ? thinCardHeight : baseCardHeight;
+  const cardHeight = (globeScale / baseGlobeScale) * cardHeightValue * mobileMultiplier;
   const radialSegments = 128;
+  const radius = globeScale * radiusMultiplier;
 
   const textures = useLoader(
     TextureLoader,
@@ -103,7 +111,7 @@ export default function PortfolioRing({
   useFrame((state, delta) => {
     if (!ringRef.current) return;
     
-    const lerpFactor = Math.min(1, delta * 8); // 부드러운 보간을 위한 팩터
+    const lerpFactor = Math.min(1, delta * 8);
     
     ringRef.current.rotation.x = gsap.utils.interpolate(
       ringRef.current.rotation.x,
@@ -122,7 +130,6 @@ export default function PortfolioRing({
     );
   });
 
-  const geometryRef = useRef<CylinderGeometry | null>(null);
   const materialRef = useRef<any>(null);
   const hasAnimatedRef = useRef(false);
 
@@ -167,7 +174,6 @@ export default function PortfolioRing({
   useEffect(() => {
     if (!materialRef.current || !scrollTriggerRef?.current) return;
 
-    // 기존 ScrollTrigger 제거 (포트폴리오 띠 관련만)
     ScrollTrigger.getAll().forEach(trigger => {
       if (trigger.vars.trigger === scrollTriggerRef.current && 
           trigger.vars.id === 'portfolioRingOpacity') {
@@ -175,7 +181,6 @@ export default function PortfolioRing({
       }
     });
 
-    // 초기 opacity 설정
     if (hasAnimatedRef.current) {
       const scrollY = window.scrollY || window.pageYOffset;
       const hasScrolledPast100vh = scrollY >= window.innerHeight;
@@ -184,9 +189,8 @@ export default function PortfolioRing({
       }
     }
 
-    // ScrollTrigger 설정 - 확실하게 사라지도록
     const scrollTrigger = ScrollTrigger.create({
-      id: 'portfolioRingOpacity', // 고유 ID로 다른 애니메이션과 구분
+      id: 'portfolioRingOpacity',
       trigger: scrollTriggerRef.current,
       start: 'top top',
       end: () => `+=${50 * gsapVh}`,
@@ -194,23 +198,29 @@ export default function PortfolioRing({
       invalidateOnRefresh: true,
       onUpdate: (self) => {
         if (materialRef.current) {
-          // 스크롤 진행도에 따라 opacity 조정 (1 -> 0)
           const progress = self.progress;
-          materialRef.current.opacity = Math.max(0, 1 - progress);
+          if (progress >= 1) {
+            materialRef.current.opacity = 0;
+          } else if (progress <= 0) {
+            const scrollY = window.scrollY || window.pageYOffset;
+            const hasScrolledPast100vh = scrollY >= window.innerHeight;
+            materialRef.current.opacity = hasScrolledPast100vh ? 0 : 1;
+          } else {
+            materialRef.current.opacity = Math.max(0, 1 - progress);
+          }
         }
       },
       onLeave: () => {
-        // 섹션을 완전히 벗어나면 확실히 opacity 0
         if (materialRef.current) {
           materialRef.current.opacity = 0;
         }
       },
-      onEnterBack: () => {
-        // 다시 들어올 때 opacity 복원
+      onEnterBack: (self) => {
         if (materialRef.current) {
+          const progress = self.progress;
           const scrollY = window.scrollY || window.pageYOffset;
           const hasScrolledPast100vh = scrollY >= window.innerHeight;
-          if (!hasScrolledPast100vh) {
+          if (progress <= 0 && !hasScrolledPast100vh) {
             materialRef.current.opacity = 1;
           }
         }
@@ -218,7 +228,6 @@ export default function PortfolioRing({
     });
 
     return () => {
-      // cleanup 시 해당 ScrollTrigger만 제거
       if (scrollTrigger) {
         scrollTrigger.kill();
       }
@@ -233,7 +242,6 @@ export default function PortfolioRing({
           position={[0, 0, 0]}
         >
           <cylinderGeometry 
-            ref={geometryRef}
             args={[radius, radius, cardHeight, radialSegments, 1, true]} 
           />
           <meshStandardMaterial 

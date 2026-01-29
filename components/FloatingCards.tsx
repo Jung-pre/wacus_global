@@ -189,11 +189,10 @@ export default function FloatingCards({ scrollTriggerRef }: FloatingCardsProps) 
   const renderText = (text: string) => {
     return text.split('').map((char, index) => {
       const isUppercase = /[A-Z]/.test(char);
-      return (
-        <span key={index} className={isUppercase ? styles.uppercase : ''}>
-          {char}
-        </span>
-      );
+      if (isUppercase) {
+        return <strong key={index} className={styles.uppercase}>{char}</strong>;
+      }
+      return char;
     });
   };
 
@@ -250,12 +249,9 @@ export default function FloatingCards({ scrollTriggerRef }: FloatingCardsProps) 
       </ul>
       <div className={styles.textContainer}>
         <div className={styles.textContent}>
-          <div className={styles.textLine}>
-            {renderText('Web Action Clear')}
-          </div>
-          <div className={styles.textLine}>
-            {renderText('User Success')}
-          </div>
+          <p className={styles.textLine}>
+            {renderText('Web Action Clear User Success')}
+          </p>
         </div>
       </div>
       </div>

@@ -23,7 +23,7 @@
   color: #FFF;
   text-align: center;
   font-family: Poppins;
-  font-size: clamp(2rem, 3.75vw, 3.75rem);
+  font-size: clamp(1.125rem, 3.75vw, 3.75rem);
   font-style: normal;
   font-weight: 300;
   line-height: 160%;
@@ -95,8 +95,8 @@
   position: absolute;
   top: 50%;
   left: 0;
-  width: 69.05213rem;
-  height: 6.33963rem;
+  width: clamp(28rem, 57.5vw, 69.05213rem);
+  height: clamp(2.576rem, 5.28vw, 6.33963rem);
   transform: translate(-2%, -30%)rotate(-0.191deg);
   background-image: url('/main/bg_path03.png');
   background-size: contain;
@@ -193,4 +193,41 @@
 .cubeScene {
   width: 100%;
   height: 100%;
+}
+
+
+@media (max-width: 768px) {
+  .pathText {
+    font-size: 1.5rem;
+  }
+  .pathTitleContainer {
+    margin-top:10rem;
+    min-height:50rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-flow: column;
+    gap:3rem;
+  }
+  .pathAnimationSection {
+    padding:1.75rem 1.44rem;
+  }
+  .pathTextTitle {
+    font-size: 3.125rem;
+    font-style: normal;
+    font-weight: 700;
+  }
+  .pathTextTitle strong {
+    font-size: 4.125rem;
+    font-style: normal;
+    font-weight: 700;
+    display: block;
+    padding:1rem 0;
+    width:28rem;
+  }
+  .pathTextSubtitle {
+    font-size: 1.25rem;
+    font-style: normal;
+    font-weight: 600;
+  }
 }

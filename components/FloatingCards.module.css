@@ -28,7 +28,12 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  /* transform은 GSAP에서 관리 */
+}
+
+@media (max-width: 768px) {
+  .cardList {
+    top:10%;
+  }
 }
 
 .cardItem {
@@ -42,17 +47,22 @@
   list-style: none;
 }
 
+@media (max-width: 768px) {
+  .cardItem {
+    height:50vh;
+  }
+}
+
 .cardItem > div {
   position: absolute;
   left: 50%;
-  top: 50%; /* 초기 상태: GSAP에서 3vh로 애니메이션 */
+  top: 50%;
   transform: translate(-50%, 0);
   cursor: url('/main/btn_viewmore.png'), auto;
 }
 
-/* 카드 순서: 1번이 제일 위 (z-index 높음), 8번이 제일 아래 (z-index 낮음) */
 .cardItem:nth-child(1) {
-  z-index: 8; /* 1번 카드 - 제일 위 */
+  z-index: 8;
 }
 
 .cardItem:nth-child(2) {
@@ -80,15 +90,22 @@
 }
 
 .cardItem:nth-child(8) {
-  z-index: 1; /* 8번 카드 - 제일 아래 */
+  z-index: 1;
 }
 
 .cardWrapper {
   position: relative;
-  width: 18.75rem; /* 300px */
-  height: 18.75rem; /* 300px - 1:1 비율 */
-  transform-origin: center bottom; /* 하단을 중심으로 회전 */
+  width: 18.75rem;
+  height: 18.75rem;
+  transform-origin: center bottom;
   cursor: url('/main/btn_viewmore.svg'), pointer;
+}
+
+@media (max-width: 768px) {
+  .cardWrapper {
+    width: 7.24563rem;
+    height: 7.24563rem;
+  }
 }
 
 .cardImage {
@@ -98,7 +115,6 @@
   aspect-ratio: 1 / 1;
 }
 
-/* 4, 6, 7, 8번 카드 이미지에 180도 회전 추가 */
 .cardItem:nth-child(4) .cardImage,
 .cardItem:nth-child(6) .cardImage,
 .cardItem:nth-child(7) .cardImage,
@@ -117,6 +133,14 @@
   filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.60));
 }
 
+@media (max-width: 1024px) {
+  .textContainer {
+    top:34%;
+    padding:0 2.2rem;
+    width:100%;
+  }
+}
+
 .textContent {
   display: flex;
   flex-direction: column;
@@ -131,7 +155,18 @@
   font-style: normal;
   font-weight: 700;
   line-height: normal;
-  white-space: nowrap;
+  width:54.0625rem;
+}
+
+@media (max-width: 768px) {
+  .textLine {
+    max-width:30.0625rem;
+    width:100%;
+    font-size: 3.75rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  }
 }
 
 .textLine .uppercase {
@@ -141,6 +176,15 @@
   font-style: normal;
   font-weight: 700;
   line-height: normal;
+}
+
+@media (max-width: 768px) {
+  .textLine .uppercase {
+    font-size: 3.75rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+  }
 }
 
 .customCursor {
